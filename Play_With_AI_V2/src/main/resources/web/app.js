@@ -187,10 +187,12 @@ window.addEventListener('DOMContentLoaded', () => {
         /* THIẾT KẾ BẢNG (TABLE) CHUẨN GIAO DIỆN WIN98          */
         /* ---------------------------------------------------- */
         .message-content table.table-win98 {
-            border-collapse: collapse !important;
+            border-collapse: separate !important;
+            border-spacing: 1px !important;
             width: 100% !important;
             margin: 15px 0 !important;
-            background-color: var(--chat-bg-color) !important;
+            background-color: #c0c0c0 !important;
+            box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
         }
         
         /* Tieu de Bang: Raised button Win98, chu den dam */
@@ -225,12 +227,9 @@ window.addEventListener('DOMContentLoaded', () => {
             padding: 8px 10px !important;
             word-break: break-word !important;
             vertical-align: top !important;
-            /* Đường viền lõm 3D: Xám Trái/Trên - Trắng Phải/Dưới */
-            border-top: 2px solid #808080 !important;
-            border-left: 2px solid #808080 !important;
-            border-bottom: 2px solid #ffffff !important;
-            border-right: 2px solid #ffffff !important;
-            background-color: var(--chat-panel-color) !important; /* Đổi màu theo Theme */
+            border: none !important;
+            box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
+            background-color: var(--chat-bg-color) !important;
         }
 
         /* ---------------------------------------------------- */
