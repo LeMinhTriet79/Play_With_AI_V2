@@ -112,6 +112,7 @@ window.appendMessage = function(sender, html, time, color) {
     chatArea.appendChild(message);
     chatArea.scrollTop = chatArea.scrollHeight;
     normalizeChatTables();
+    highlightCodeBlocks(message);
 };
 
 window.clearChat = function() {
@@ -192,16 +193,16 @@ window.addEventListener('DOMContentLoaded', () => {
             background-color: var(--chat-bg-color) !important;
         }
         
-        /* Tieu de Bang: Xanh Win98, chu trang dam */
+        /* Tieu de Bang: Raised button Win98, chu den dam */
         .message-content th.table-head {
             display: table-cell !important;
             font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif !important;
             font-size: 12px !important;
             font-weight: bold !important;
-            color: #ffffff !important;
-            background: #000080 !important;
-            background-image: linear-gradient(90deg, #000080, #1084d0) !important;
-            border: 1px solid var(--chat-border-color) !important;
+            color: #000000 !important;
+            background: #d4d0c8 !important;
+            border: 1px solid #808080 !important;
+            box-shadow: inset 1px 1px #ffffff, inset -1px -1px #0a0a0a, inset 2px 2px #dfdfdf, inset -2px -2px #808080 !important;
             padding: 6px 10px !important;
             text-align: left !important;
             white-space: nowrap !important;
@@ -254,6 +255,43 @@ window.addEventListener('DOMContentLoaded', () => {
             font-family: "Courier New", Courier, monospace !important;
             font-size: var(--chat-font-size) !important;
             color: var(--chat-text-color) !important;
+        }
+
+        .message-content pre code.hljs {
+            display: block !important;
+            padding: 0 !important;
+            background: transparent !important;
+            color: var(--chat-text-color) !important;
+            line-height: 1.45 !important;
+            tab-size: 4;
+        }
+
+        .message-content .hljs-comment {
+            color: #008000 !important;
+        }
+
+        .message-content .hljs-keyword,
+        .message-content .hljs-selector-tag,
+        .message-content .hljs-literal {
+            color: #000080 !important;
+            font-weight: bold !important;
+        }
+
+        .message-content .hljs-string,
+        .message-content .hljs-regexp {
+            color: #800000 !important;
+        }
+
+        .message-content .hljs-number,
+        .message-content .hljs-attr,
+        .message-content .hljs-attribute {
+            color: #0000a0 !important;
+        }
+
+        .message-content .hljs-title,
+        .message-content .hljs-built_in,
+        .message-content .hljs-type {
+            color: #008080 !important;
         }
 
         /* Inline Code: Đoạn code ngắn trong dòng chữ */
@@ -564,5 +602,18 @@ function normalizeChatTables() {
     const tables = chatArea.querySelectorAll('table');
     tables.forEach((table) => {
         table.classList.add('interactive', 'table-win98');
+    });
+}
+
+function highlightCodeBlocks(container) {
+    if (!window.hljs || !container) {
+        return;
+    }
+    const blocks = container.querySelectorAll('pre code');
+    blocks.forEach((block) => {
+        if (block.classList.contains('hljs')) {
+            return;
+        }
+        window.hljs.highlightElement(block);
     });
 }
