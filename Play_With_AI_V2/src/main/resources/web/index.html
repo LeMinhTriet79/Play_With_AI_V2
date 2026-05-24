@@ -19,6 +19,12 @@
                 radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 34%),
                 linear-gradient(180deg, #0b7d7d 0%, #0a6666 100%);
             font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif;
+            --chat-bg-color: #ffffff;
+            --chat-text-color: #000000;
+            --chat-panel-color: #f8f8f8;
+            --chat-border-color: #c0c0c0;
+            --chat-font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif;
+            --chat-font-size: 12px;
         }
 
         *,
@@ -111,12 +117,27 @@
             min-height: 0;
             overflow: auto;
             padding: 2px;
-            background: #fff;
+            background: var(--chat-bg-color);
+            color: var(--chat-text-color);
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
         }
 
         .list-panel table {
             width: 100%;
             border-collapse: collapse;
+            white-space: nowrap;
+            background: transparent;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            table-layout: fixed;
+        }
+
+        .list-panel th,
+        .list-panel td {
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
 
@@ -124,6 +145,13 @@
             position: sticky;
             top: 0;
             z-index: 1;
+            background: #c0c0c0;
+            color: #000000;
+            box-shadow:
+                inset -1px -1px #0a0a0a,
+                inset 1px 1px #ffffff,
+                inset -2px -2px grey,
+                inset 2px 2px #dfdfdf;
         }
 
         .main-chat-area {
@@ -176,7 +204,10 @@
             min-height: 0;
             overflow: auto;
             padding: 10px;
-            background: #fff;
+            background: var(--chat-bg-color);
+            color: var(--chat-text-color);
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
             height: 100%;
         }
 
@@ -191,11 +222,33 @@
                 inset 2px 2px #dfdfdf;
         }
 
+        #chatArea table {
+            width: 100% !important;
+            table-layout: fixed;
+            border-collapse: collapse;
+            background: var(--chat-bg-color) !important;
+            color: var(--chat-text-color) !important;
+            font-family: var(--chat-font-family) !important;
+            font-size: var(--chat-font-size) !important;
+        }
+
+        #chatArea th,
+        #chatArea td {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            box-shadow: inset -1px -1px var(--chat-border-color), inset 1px 1px #ffffff;
+        }
+
+        #chatArea td {
+            background: var(--chat-bg-color);
+        }
+
         .message {
             padding: 6px 8px;
             margin-bottom: 8px;
-            border: 1px solid #c0c0c0;
-            background: #f8f8f8;
+            border: 1px solid var(--chat-border-color);
+            background: var(--chat-panel-color);
         }
 
         .message-header {
@@ -245,6 +298,10 @@
             min-height: 96px;
             height: 110px;
             max-height: 260px;
+            background: var(--chat-bg-color);
+            color: var(--chat-text-color);
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
         }
 
         .settings-layout {
@@ -306,8 +363,10 @@
 
         #sessionPanel,
         #keyPanel {
-            background: #fff;
-            color: #000;
+            background: var(--chat-bg-color);
+            color: var(--chat-text-color);
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
         }
 
         .toolbar-actions {
@@ -384,6 +443,17 @@
 
                         <div class="main-chat-area">
                             <div class="toolbar-panel chat-toolbar">
+                                <div class="field-row">
+                                    <label for="bgSelect"><strong>Màu nền</strong></label>
+                                    <select id="bgSelect">
+                                        <option value="white" selected>Trắng (Mặc định)</option>
+                                        <option value="notepad">Vàng nhạt (Notepad)</option>
+                                        <option value="desktop">Xanh lơ (Win98 Desktop)</option>
+                                        <option value="matrix">Xanh rêu (Matrix)</option>
+                                        <option value="dialog">Xám (Hộp thoại)</option>
+                                    </select>
+                                </div>
+                                <div class="divider" aria-hidden="true"></div>
                                 <div class="field-row">
                                     <label for="fontSelect"><strong>Font</strong></label>
                                     <select id="fontSelect">
@@ -467,6 +537,7 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/highlight.js@11.9.0/lib/common.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
