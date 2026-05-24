@@ -126,7 +126,7 @@ window.updateKeys = function(payload) {
         row.appendChild(nameCell);
 
         const statusCell = document.createElement('td');
-        statusCell.textContent = key.isActive ? 'Đang dùng' : '';
+        statusCell.textContent = key.isActive ? '[Đang dùng]' : '';
         row.appendChild(statusCell);
 
         tbody.appendChild(row);
@@ -210,6 +210,25 @@ window.setBusy = function(busy) {
 
 window.setStatus = function(text) {
     document.getElementById('statusText').textContent = text;
+};
+
+window.showInfoDialog = function(message, title) {
+    ensureDialogElements();
+    const dialogHost = document.getElementById('dialogBackdrop');
+    if (dialogHost && typeof window.__openDialog === 'function') {
+        window.__openDialog({
+            title: title || 'Thông báo',
+            message: message || '',
+            showInput: false,
+            okText: 'OK',
+            cancelText: 'Cancel',
+            hideCancel: true,
+        }, () => {
+        });
+        return;
+    }
+
+    alert(message || '');
 };
 
 window.handleRenameClick = function() {
@@ -475,6 +494,7 @@ const initUi = () => {
                 lastFocus = document.activeElement;
                 const opts = options || {};
                 showInput = !!opts.showInput;
+                const hideCancel = !!opts.hideCancel;
                 dialogTitle.textContent = opts.title || 'Dialog';
                 dialogMessage.textContent = opts.message || '';
                 dialogInputLabel.textContent = opts.inputLabel || 'Input';
@@ -482,6 +502,8 @@ const initUi = () => {
                 dialogInput.value = opts.defaultValue || '';
                 dialogOk.textContent = opts.okText || 'OK';
                 dialogCancel.textContent = opts.cancelText || 'Cancel';
+                dialogCancel.hidden = hideCancel;
+                dialogCancel.style.display = hideCancel ? 'none' : '';
                 dialogBackdrop.removeAttribute('hidden');
                 dialogBackdrop.style.display = 'flex';
                 dialogBackdrop.tabIndex = -1;

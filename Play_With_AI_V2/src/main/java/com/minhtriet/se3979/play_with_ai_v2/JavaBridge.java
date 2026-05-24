@@ -261,7 +261,9 @@ public class JavaBridge {
     }
 
     private void safeAlert(String message) {
-        webEngine.executeScript("alert(" + jsString(message) + ")");
+        webEngine.executeScript(
+                "if (window.showInfoDialog) { window.showInfoDialog(" + jsString(message) + "); } else { alert(" + jsString(message) + "); }"
+        );
     }
 
     private void safeClearInput() {
