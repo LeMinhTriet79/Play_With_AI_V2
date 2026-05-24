@@ -356,7 +356,7 @@ const initUi = () => {
         }
         
         .message-content .window-body .sunken-panel {
-            background-color: var(--chat-bg-color) !important;
+            background-color: #c0c0c0 !important;
             border: 2px solid #808080 !important;
             border-bottom-color: #ffffff !important;
             border-right-color: #ffffff !important;
@@ -368,6 +368,7 @@ const initUi = () => {
             font-family: "Courier New", Courier, monospace !important;
             font-size: var(--chat-font-size) !important;
             color: var(--chat-text-color) !important;
+            background: transparent !important;
         }
 
         /* Inline Code: Đoạn code ngắn trong dòng chữ */
