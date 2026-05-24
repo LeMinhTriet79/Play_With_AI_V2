@@ -2,6 +2,9 @@ package com.minhtriet.se3979.play_with_ai_v2;
 
 import javafx.application.Application;
 import javafx.concurrent.Worker;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -20,6 +23,25 @@ public class MainApp extends Application {
         webView.setContextMenuEnabled(false);
         WebEngine webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
+
+        webEngine.setOnAlert(event -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, event.getData(), ButtonType.OK);
+            alert.setHeaderText(null);
+            alert.showAndWait();
+        });
+
+        webEngine.setConfirmHandler(message -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, ButtonType.OK, ButtonType.CANCEL);
+            alert.setHeaderText(null);
+            return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+        });
+
+        webEngine.setPromptHandler(param -> {
+            TextInputDialog dialog = new TextInputDialog(param.getDefaultValue());
+            dialog.setHeaderText(null);
+            dialog.setContentText(param.getMessage());
+            return dialog.showAndWait().orElse(null);
+        });
 
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {

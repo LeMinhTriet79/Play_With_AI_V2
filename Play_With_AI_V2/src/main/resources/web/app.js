@@ -30,6 +30,40 @@ function parsePayload(payload) {
     return [];
 }
 
+function ensureDialogElements() {
+    if (document.getElementById('dialogBackdrop')) {
+        return;
+    }
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'dialogBackdrop';
+    backdrop.className = 'modal-backdrop';
+    backdrop.setAttribute('hidden', '');
+    backdrop.style.display = 'none';
+    backdrop.innerHTML = `
+        <div class="window dialog-window" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+            <div class="title-bar">
+                <div class="title-bar-text" id="dialogTitle">Dialog</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Close" id="dialogClose"></button>
+                </div>
+            </div>
+            <div class="window-body dialog-body">
+                <p class="dialog-message" id="dialogMessage"></p>
+                <div class="field-row" id="dialogInputRow">
+                    <label for="dialogInput" id="dialogInputLabel">Input</label>
+                    <input id="dialogInput" type="text" class="dialog-input">
+                </div>
+                <div class="dialog-actions">
+                    <button id="dialogOk" class="default">OK</button>
+                    <button id="dialogCancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(backdrop);
+}
+
 function setTab(tabId) {
     const chatTab = document.getElementById('tab-chat');
     const settingsTab = document.getElementById('tab-settings');
@@ -59,6 +93,14 @@ window.updateSessions = function(payload) {
         cell.title = session.title;
         row.appendChild(cell);
 
+        row.onclick = () => {
+            setSelectedSession(row.dataset.id);
+            const id = Number(row.dataset.id);
+            if (!Number.isNaN(id)) {
+                bridgeCall('selectSession', id);
+            }
+        };
+
         tbody.appendChild(row);
     });
 
@@ -84,7 +126,7 @@ window.updateKeys = function(payload) {
         row.appendChild(nameCell);
 
         const statusCell = document.createElement('td');
-        statusCell.textContent = key.isActive ? 'Đang dùng' : '';
+        statusCell.textContent = key.isActive ? '[Đang dùng]' : '';
         row.appendChild(statusCell);
 
         tbody.appendChild(row);
@@ -112,7 +154,6 @@ window.appendMessage = function(sender, html, time, color) {
     chatArea.appendChild(message);
     chatArea.scrollTop = chatArea.scrollHeight;
     normalizeChatTables();
-    highlightCodeBlocks(message);
 };
 
 window.clearChat = function() {
@@ -139,14 +180,15 @@ window.setSelectedSession = function(id) {
     }
 
     panel.dataset.selectedId = String(id);
+    window.__currentSessionId = String(id);
     highlightRowById(tbody, String(id));
 };
 
 window.setBusy = function(busy) {
     document.getElementById('btnSend').disabled = !!busy;
     document.getElementById('btnNewChat').disabled = !!busy;
-    document.getElementById('btnRename').disabled = !!busy;
-    document.getElementById('btnDelete').disabled = !!busy;
+    document.getElementById('btnRename').disabled = false;
+    document.getElementById('btnDelete').disabled = false;
     document.getElementById('btnAddKey').disabled = !!busy;
     document.getElementById('btnDelKey').disabled = !!busy;
     document.getElementById('btnSetKey').disabled = !!busy;
@@ -170,7 +212,86 @@ window.setStatus = function(text) {
     document.getElementById('statusText').textContent = text;
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+window.showInfoDialog = function(message, title) {
+    ensureDialogElements();
+    const dialogHost = document.getElementById('dialogBackdrop');
+    if (dialogHost && typeof window.__openDialog === 'function') {
+        window.__openDialog({
+            title: title || 'Thông báo',
+            message: message || '',
+            showInput: false,
+            okText: 'OK',
+            cancelText: 'Cancel',
+            hideCancel: true,
+        }, () => {
+        });
+        return;
+    }
+
+    alert(message || '');
+};
+
+window.handleRenameClick = function() {
+    const id = resolveSelectedSessionId();
+    if (Number.isNaN(id)) {
+        return;
+    }
+
+    const currentTitle = getSelectedSessionTitle();
+    ensureDialogElements();
+    const dialogHost = document.getElementById('dialogBackdrop');
+    if (dialogHost && typeof window.__openDialog === 'function') {
+        window.__openDialog({
+            title: 'Đổi tên đoạn chat',
+            message: 'Nhập tên mới cho đoạn chat:',
+            inputLabel: 'Tên mới',
+            defaultValue: currentTitle,
+            showInput: true,
+            okText: 'OK',
+            cancelText: 'Cancel',
+        }, (result) => {
+            if (result && result.confirmed && result.value.trim()) {
+                bridgeCall('handleRenameSession', id, result.value.trim());
+            }
+        });
+        return;
+    }
+
+    const newName = prompt('Nhập tên mới cho đoạn chat:', currentTitle);
+    if (newName && newName.trim()) {
+        bridgeCall('handleRenameSession', id, newName.trim());
+    }
+};
+
+window.handleDeleteClick = function() {
+    const id = resolveSelectedSessionId();
+    if (Number.isNaN(id)) {
+        return;
+    }
+
+    ensureDialogElements();
+    const dialogHost = document.getElementById('dialogBackdrop');
+    if (dialogHost && typeof window.__openDialog === 'function') {
+        window.__openDialog({
+            title: 'Xóa đoạn chat',
+            message: 'Bạn có chắc muốn xóa đoạn chat này?',
+            showInput: false,
+            okText: 'OK',
+            cancelText: 'Cancel',
+        }, (result) => {
+            if (result && result.confirmed) {
+                bridgeCall('handleDeleteSession', id);
+            }
+        });
+        return;
+    }
+
+    if (confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
+        bridgeCall('handleDeleteSession', id);
+    }
+};
+
+const initUi = () => {
     // =========================================================================
     // TIÊM CSS ĐỘNG - KẾT HỢP BIẾN CSS VÀ GIAO DIỆN CHUẨN WIN98 (BẢNG, CODE)
     // =========================================================================
@@ -186,31 +307,23 @@ window.addEventListener('DOMContentLoaded', () => {
         /* ---------------------------------------------------- */
         /* THIẾT KẾ BẢNG (TABLE) CHUẨN GIAO DIỆN WIN98          */
         /* ---------------------------------------------------- */
-        .message-content table.table-win98 {
-            border-collapse: separate !important;
-            border-spacing: 1px !important;
+        .message-content table {
+            border-collapse: collapse !important;
             width: 100% !important;
             margin: 15px 0 !important;
-            background-color: #c0c0c0 !important;
-            box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
+            background-color: var(--chat-bg-color) !important;
         }
         
-        /* Tieu de Bang: Raised button Win98, chu den dam */
-        .message-content th.table-head {
-            display: table-cell !important;
-            font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif !important;
-            font-size: 12px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #d4d0c8 !important;
-            border: 1px solid #808080 !important;
-            box-shadow: inset 1px 1px #ffffff, inset -1px -1px #0a0a0a, inset 2px 2px #dfdfdf, inset -2px -2px #808080 !important;
+        /* Tiêu đề Bảng: Màu Xanh Gradient, Chữ Trắng Đậm, Font Hệ Thống */
+        .message-content th.title-bar {
+            background: #000080 !important;
+            background-image: linear-gradient(90deg, #000080, #1084d0) !important;
+            border: 1px solid var(--chat-border-color) !important;
             padding: 6px 10px !important;
             text-align: left !important;
-            white-space: nowrap !important;
         }
         
-        /* Chu trong thanh tieu de Code Block */
+        /* Chữ trong thanh Tiêu đề Bảng và Code Block */
         .message-content .title-bar-text {
             font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif !important;
             font-size: 12px !important;
@@ -225,11 +338,12 @@ window.addEventListener('DOMContentLoaded', () => {
             font-size: var(--chat-font-size) !important;
             color: var(--chat-text-color) !important;
             padding: 8px 10px !important;
-            word-break: break-word !important;
-            vertical-align: top !important;
-            border: none !important;
-            box-shadow: inset 1px 1px #808080, inset -1px -1px #ffffff !important;
-            background-color: var(--chat-bg-color) !important;
+            /* Đường viền lõm 3D: Xám Trái/Trên - Trắng Phải/Dưới */
+            border-top: 2px solid #808080 !important;
+            border-left: 2px solid #808080 !important;
+            border-bottom: 2px solid #ffffff !important;
+            border-right: 2px solid #ffffff !important;
+            background-color: var(--chat-panel-color) !important; /* Đổi màu theo Theme */
         }
 
         /* ---------------------------------------------------- */
@@ -257,43 +371,6 @@ window.addEventListener('DOMContentLoaded', () => {
             background: transparent !important;
         }
 
-        .message-content pre code.hljs {
-            display: block !important;
-            padding: 0 !important;
-            background: transparent !important;
-            color: var(--chat-text-color) !important;
-            line-height: 1.45 !important;
-            tab-size: 4;
-        }
-
-        .message-content .hljs-comment {
-            color: #008000 !important;
-        }
-
-        .message-content .hljs-keyword,
-        .message-content .hljs-selector-tag,
-        .message-content .hljs-literal {
-            color: #000080 !important;
-            font-weight: bold !important;
-        }
-
-        .message-content .hljs-string,
-        .message-content .hljs-regexp {
-            color: #800000 !important;
-        }
-
-        .message-content .hljs-number,
-        .message-content .hljs-attr,
-        .message-content .hljs-attribute {
-            color: #0000a0 !important;
-        }
-
-        .message-content .hljs-title,
-        .message-content .hljs-built_in,
-        .message-content .hljs-type {
-            color: #008080 !important;
-        }
-
         /* Inline Code: Đoạn code ngắn trong dòng chữ */
         .message-content code:not(pre code) {
             background-color: rgba(0,0,0,0.1) !important;
@@ -304,9 +381,46 @@ window.addEventListener('DOMContentLoaded', () => {
             border-right: 1px solid #ffffff !important;
             font-size: var(--chat-font-size) !important;
         }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 9999;
+        }
+
+        .dialog-window {
+            width: 420px;
+            max-width: calc(100% - 40px);
+        }
+
+        .dialog-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dialog-message {
+            margin: 0;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .dialog-input {
+            width: 100%;
+        }
     `;
     document.head.appendChild(dynamicStyle);
 
+    ensureDialogElements();
 
     const chatArea = document.getElementById('chatArea');
     const userInput = document.getElementById('userInput');
@@ -319,6 +433,97 @@ window.addEventListener('DOMContentLoaded', () => {
     const chatSidebar = document.getElementById('chatSidebar');
     const chatSplit = document.getElementById('chatSplit');
     const chatComposer = document.getElementById('chatComposer');
+    const dialogBackdrop = document.getElementById('dialogBackdrop');
+    const dialogTitle = document.getElementById('dialogTitle');
+    const dialogMessage = document.getElementById('dialogMessage');
+    const dialogInputRow = document.getElementById('dialogInputRow');
+    const dialogInputLabel = document.getElementById('dialogInputLabel');
+    const dialogInput = document.getElementById('dialogInput');
+    const dialogOk = document.getElementById('dialogOk');
+    const dialogCancel = document.getElementById('dialogCancel');
+    const dialogClose = document.getElementById('dialogClose');
+
+    const dialog = (() => {
+        if (!dialogBackdrop || !dialogTitle || !dialogMessage || !dialogInputRow || !dialogInput || !dialogOk || !dialogCancel || !dialogClose) {
+            return { open: null };
+        }
+
+        let resolver = null;
+        let lastFocus = null;
+        let showInput = false;
+        let isOpen = false;
+
+        const closeDialog = (confirmed) => {
+            if (!isOpen) {
+                return;
+            }
+            dialogBackdrop.setAttribute('hidden', '');
+            dialogBackdrop.style.display = 'none';
+            const value = showInput ? dialogInput.value : '';
+            showInput = false;
+            isOpen = false;
+            if (lastFocus && typeof lastFocus.focus === 'function') {
+                lastFocus.focus();
+            }
+            if (resolver) {
+                resolver({ confirmed, value });
+            }
+            resolver = null;
+            lastFocus = null;
+        };
+
+        dialogOk.addEventListener('click', () => closeDialog(true));
+        dialogCancel.addEventListener('click', () => closeDialog(false));
+        dialogClose.addEventListener('click', () => closeDialog(false));
+
+        dialogBackdrop.addEventListener('keydown', (event) => {
+            if (!isOpen) {
+                return;
+            }
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeDialog(false);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                closeDialog(true);
+            }
+        });
+
+        return {
+            open: (options, onClose) => {
+                resolver = typeof onClose === 'function' ? onClose : null;
+                lastFocus = document.activeElement;
+                const opts = options || {};
+                showInput = !!opts.showInput;
+                const hideCancel = !!opts.hideCancel;
+                dialogTitle.textContent = opts.title || 'Dialog';
+                dialogMessage.textContent = opts.message || '';
+                dialogInputLabel.textContent = opts.inputLabel || 'Input';
+                dialogInputRow.hidden = !showInput;
+                dialogInput.value = opts.defaultValue || '';
+                dialogOk.textContent = opts.okText || 'OK';
+                dialogCancel.textContent = opts.cancelText || 'Cancel';
+                dialogCancel.hidden = hideCancel;
+                dialogCancel.style.display = hideCancel ? 'none' : '';
+                dialogBackdrop.removeAttribute('hidden');
+                dialogBackdrop.style.display = 'flex';
+                dialogBackdrop.tabIndex = -1;
+                dialogBackdrop.focus();
+                isOpen = true;
+
+                setTimeout(() => {
+                    if (showInput) {
+                        dialogInput.focus();
+                        dialogInput.select();
+                    } else {
+                        dialogOk.focus();
+                    }
+                }, 0);
+            },
+        };
+    })();
+
+    window.__openDialog = typeof dialog.open === 'function' ? dialog.open : null;
 
     const backgroundPresets = {
         white: { bg: '#ffffff', text: '#000000', panel: '#f8f8f8', border: '#c0c0c0' },
@@ -378,28 +583,15 @@ window.addEventListener('DOMContentLoaded', () => {
         bridgeCall('handleNewSession');
     });
 
-    document.getElementById('btnRename').addEventListener('click', () => {
-        const id = getSelectedSessionId();
-        if (Number.isNaN(id)) {
-            return;
-        }
+    const renameBtn = document.getElementById('btnRename');
+    if (renameBtn) {
+        renameBtn.onclick = window.handleRenameClick;
+    }
 
-        const newName = prompt('Nhập tên mới cho đoạn chat:');
-        if (newName && newName.trim()) {
-            bridgeCall('handleRenameSession', id, newName);
-        }
-    });
-
-    document.getElementById('btnDelete').addEventListener('click', () => {
-        const id = getSelectedSessionId();
-        if (Number.isNaN(id)) {
-            return;
-        }
-
-        if (confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
-            bridgeCall('handleDeleteSession', id);
-        }
-    });
+    const deleteBtn = document.getElementById('btnDelete');
+    if (deleteBtn) {
+        deleteBtn.onclick = window.handleDeleteClick;
+    }
 
     document.getElementById('btnSend').addEventListener('click', () => {
         const text = document.getElementById('userInput').value;
@@ -534,7 +726,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     setTab('chat');
     window.setBusy(false);
-});
+};
+
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initUi);
+} else {
+    initUi();
+}
 
 function clearHighlightedRows(tbody) {
     Array.from(tbody.querySelectorAll('tr.highlighted')).forEach((row) => {
@@ -554,10 +752,59 @@ function highlightRowById(tbody, id) {
 
 function getSelectedSessionId() {
     const panel = document.getElementById('sessionPanel');
-    if (!panel || !panel.dataset.selectedId) {
+    if (panel && panel.dataset.selectedId) {
+        return Number(panel.dataset.selectedId);
+    }
+
+    if (window.__currentSessionId) {
+        return Number(window.__currentSessionId);
+    }
+
+    const tbody = document.getElementById('sessionTableBody');
+    if (tbody) {
+        const row = tbody.querySelector('tr.highlighted');
+        if (row && row.dataset.id) {
+            return Number(row.dataset.id);
+        }
+        const firstRow = tbody.querySelector('tr');
+        if (firstRow && firstRow.dataset.id) {
+            return Number(firstRow.dataset.id);
+        }
+    }
+    return Number.NaN;
+}
+
+function getSelectedSessionTitle() {
+    const tbody = document.getElementById('sessionTableBody');
+    if (!tbody) {
+        return '';
+    }
+    const row = tbody.querySelector('tr.highlighted');
+    if (!row) {
+        return '';
+    }
+    const cell = row.querySelector('td');
+    return cell ? cell.textContent.trim() : '';
+}
+
+function resolveSelectedSessionId() {
+    let id = getSelectedSessionId();
+    if (!Number.isNaN(id)) {
+        return id;
+    }
+
+    const tbody = document.getElementById('sessionTableBody');
+    if (!tbody) {
         return Number.NaN;
     }
-    return Number(panel.dataset.selectedId);
+
+    const firstRow = tbody.querySelector('tr');
+    if (firstRow && firstRow.dataset.id) {
+        setSelectedSession(firstRow.dataset.id);
+        id = Number(firstRow.dataset.id);
+    }
+
+    return id;
 }
 
 function getSelectedKeyId() {
@@ -601,19 +848,8 @@ function normalizeChatTables() {
 
     const tables = chatArea.querySelectorAll('table');
     tables.forEach((table) => {
-        table.classList.add('interactive', 'table-win98');
-    });
-}
-
-function highlightCodeBlocks(container) {
-    if (!window.hljs || !container) {
-        return;
-    }
-    const blocks = container.querySelectorAll('pre code');
-    blocks.forEach((block) => {
-        if (block.classList.contains('hljs')) {
-            return;
-        }
-        window.hljs.highlightElement(block);
+        // Đã LƯỢC BỎ lệnh xóa style để giữ nguyên cấu trúc HTML của Java trả về
+        // Chỉ thêm class 'interactive' để tương thích 98.css
+        table.classList.add('interactive');
     });
 }
