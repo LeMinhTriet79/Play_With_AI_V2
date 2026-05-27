@@ -1,0 +1,370 @@
+body.os-shell {
+    --chat-bg-color: #ffffff;
+    --chat-text-color: #000000;
+    --chat-panel-color: #f8f8f8;
+    --chat-border-color: #c0c0c0;
+    --chat-font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif;
+    --chat-font-size: 12px;
+}
+
+.desktop-window {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.desktop-window .window-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px;
+}
+
+.workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tabpanel-shell {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tabpanel-inner {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+}
+
+.chat-layout {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    gap: 6px;
+}
+
+.sidebar {
+    width: 270px;
+    flex: 0 0 270px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#btnNewChat {
+    width: 100%;
+}
+
+.sidebar-splitter {
+    width: 7px;
+    cursor: col-resize;
+    background: #c0c0c0;
+    box-shadow:
+        inset -1px -1px #0a0a0a,
+        inset 1px 1px #ffffff,
+        inset -2px -2px grey,
+        inset 2px 2px #dfdfdf;
+}
+
+.sidebar select,
+.settings-list {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+}
+
+.list-panel {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 2px;
+    background: var(--chat-bg-color);
+    color: var(--chat-text-color);
+    font-family: var(--chat-font-family);
+    font-size: var(--chat-font-size);
+}
+
+.list-panel table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    table-layout: fixed;
+}
+
+.list-panel th,
+.list-panel td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-panel thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #c0c0c0;
+    color: #000000;
+    box-shadow:
+        inset -1px -1px #0a0a0a,
+        inset 1px 1px #ffffff,
+        inset -2px -2px grey,
+        inset 2px 2px #dfdfdf;
+}
+
+.main-chat-area {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.toolbar-panel {
+    padding: 4px 6px;
+    background: #c0c0c0;
+    box-shadow:
+        inset -1px -1px #0a0a0a,
+        inset 1px 1px #ffffff,
+        inset -2px -2px grey,
+        inset 2px 2px #dfdfdf;
+}
+
+.chat-toolbar .divider {
+    width: 1px;
+    height: 18px;
+    background: #808080;
+    box-shadow: 1px 0 0 #ffffff;
+}
+
+#fontSizeRange {
+    width: 120px;
+}
+
+.chat-split {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-history {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px;
+    background: var(--chat-bg-color);
+    color: var(--chat-text-color);
+    font-family: var(--chat-font-family);
+    font-size: var(--chat-font-size);
+    height: 100%;
+}
+
+.chat-splitter {
+    height: 7px;
+    cursor: row-resize;
+    background: #c0c0c0;
+    box-shadow:
+        inset -1px -1px #0a0a0a,
+        inset 1px 1px #ffffff,
+        inset -2px -2px grey,
+        inset 2px 2px #dfdfdf;
+}
+
+#chatArea table {
+    width: 100% !important;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: var(--chat-bg-color) !important;
+    color: var(--chat-text-color) !important;
+    font-family: var(--chat-font-family) !important;
+    font-size: var(--chat-font-size) !important;
+}
+
+#chatArea th,
+#chatArea td {
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-shadow: inset -1px -1px var(--chat-border-color), inset 1px 1px #ffffff;
+}
+
+#chatArea td {
+    background: var(--chat-bg-color);
+}
+
+.message {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border: 1px solid var(--chat-border-color);
+    background: var(--chat-panel-color);
+}
+
+.message-header {
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.message-content {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.message-content :is(p, ul, ol, pre, blockquote) {
+    margin-top: 0;
+    margin-bottom: 0.75em;
+}
+
+.message-content :is(p:last-child, ul:last-child, ol:last-child, pre:last-child, blockquote:last-child) {
+    margin-bottom: 0;
+}
+
+.message-you .message-header {
+    color: #000080;
+}
+
+.message-ai .message-header {
+    color: #008000;
+}
+
+.message-system .message-header {
+    color: #800000;
+}
+
+.composer {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    min-height: 110px;
+}
+
+#userInput {
+    flex: 1;
+    resize: none;
+    min-height: 96px;
+    height: 110px;
+    max-height: 260px;
+    background: var(--chat-bg-color);
+    color: var(--chat-text-color);
+    font-family: var(--chat-font-family);
+    font-size: var(--chat-font-size);
+}
+
+.settings-layout {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.settings-column {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-column:first-child {
+    flex: 0 0 42%;
+}
+
+.settings-column:last-child {
+    flex: 1 1 auto;
+}
+
+.settings-list {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.settings-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.settings-inline label {
+    white-space: normal;
+}
+
+.settings-inline input[type="text"] {
+    width: 220px;
+    max-width: 100%;
+}
+
+.settings-inline input[type="password"] {
+    width: 320px;
+    max-width: 100%;
+}
+
+#sessionPanel,
+#keyPanel {
+    background: var(--chat-bg-color);
+    color: var(--chat-text-color);
+    font-family: var(--chat-font-family);
+    font-size: var(--chat-font-size);
+}
+
+.toolbar-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.grow {
+    flex: 1;
+}
+
+textarea,
+input,
+select,
+button {
+    font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif;
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.status-bar-field {
+    user-select: none;
+}

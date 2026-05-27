@@ -12,6 +12,12 @@ import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainApp extends Application {
 
@@ -52,11 +58,22 @@ public class MainApp extends Application {
             }
         });
 
-        URL url = getClass().getResource("/web/index.html");
-        if (url != null) {
-            webEngine.load(url.toExternalForm());
+        Path devPath = resolveDevIndexPath();
+        if (devPath != null && Files.exists(devPath)) {
+            String devUrl = devPath.toUri().toString() + "?v=" + System.currentTimeMillis();
+            System.out.println("[WebView] Loading dev HTML: " + devUrl);
+            webEngine.load(devUrl);
+            primaryStage.setTitle("Play With AI - Windows 98 Edition (DEV)");
         } else {
-            System.err.println("Lỗi: Không tìm thấy file /web/index.html");
+            URL url = getClass().getResource("/web/index.html");
+            if (url != null) {
+                String classUrl = url.toExternalForm() + "?v=" + System.currentTimeMillis();
+                System.out.println("[WebView] Loading classpath HTML: " + classUrl);
+                webEngine.load(classUrl);
+                primaryStage.setTitle("Play With AI - Windows 98 Edition (CLASSPATH)");
+            } else {
+                System.err.println("Lỗi: Không tìm thấy file /web/index.html");
+            }
         }
 
         Scene scene = new Scene(webView);
@@ -67,5 +84,46 @@ public class MainApp extends Application {
         primaryStage.setWidth(1280);
         primaryStage.setHeight(840);
         primaryStage.show();
+    }
+
+    private Path resolveDevIndexPath() {
+        List<Path> bases = new ArrayList<>();
+
+        try {
+            URL location = MainApp.class.getProtectionDomain().getCodeSource().getLocation();
+            if (location != null) {
+                Path codePath = Paths.get(location.toURI());
+                if (Files.isDirectory(codePath)) {
+                    bases.add(codePath);
+                    if (codePath.getParent() != null) {
+                        bases.add(codePath.getParent());
+                    }
+                    if (codePath.getParent() != null && codePath.getParent().getParent() != null) {
+                        bases.add(codePath.getParent().getParent());
+                    }
+                } else if (codePath.getParent() != null) {
+                    bases.add(codePath.getParent());
+                }
+            }
+        } catch (URISyntaxException ex) {
+            System.err.println("[WebView] CodeSource URI error: " + ex.getMessage());
+        }
+
+        String userDir = System.getProperty("user.dir");
+        if (userDir != null) {
+            bases.add(Paths.get(userDir));
+        }
+
+        for (Path base : bases) {
+            Path cursor = base;
+            for (int i = 0; i < 6 && cursor != null; i += 1) {
+                Path candidate = cursor.resolve("src/main/resources/web/index.html");
+                if (Files.exists(candidate)) {
+                    return candidate;
+                }
+                cursor = cursor.getParent();
+            }
+        }
+        return null;
     }
 }

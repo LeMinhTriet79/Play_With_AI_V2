@@ -12,17 +12,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Mở cổng "/ws" để Javascript gọi tới.
-        // setAllowedOriginPatterns("*") giúp không bị chặn lỗi CORS (bảo mật chéo) khi test từ máy khác
         registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Tiền tố "/topic" giống như một Trạm Phát Thanh. Ai đăng ký kênh này sẽ nhận được tin nhắn (Broadcast)
-        registry.enableSimpleBroker("/topic");
-
-        // Tiền tố "/app" dành cho tin nhắn từ Client gửi LÊN Server để xử lý
+        // Cho phép gửi qua /topic (công cộng) và /queue (riêng tư)
+        registry.enableSimpleBroker("/topic", "/queue");
         registry.setApplicationDestinationPrefixes("/app");
     }
 }

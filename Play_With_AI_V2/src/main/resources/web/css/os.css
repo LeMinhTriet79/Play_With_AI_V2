@@ -1,0 +1,273 @@
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body.os-shell {
+    overflow: hidden;
+    background: #008080;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.screen[hidden] {
+    display: none !important;
+}
+
+.screen-login {
+    background: #008080;
+}
+
+.login-window {
+    position: absolute;
+    width: 360px;
+    left: 50%;
+    top: 50%;
+    margin-left: -180px;
+    margin-top: -170px;
+    max-width: calc(100% - 24px);
+    z-index: 100;
+}
+
+.login-window .window-body {
+    padding-top: 6px;
+}
+
+.login-panels {
+    margin-top: 8px;
+}
+
+.login-form {
+    display: block;
+    padding: 8px 4px 4px 4px;
+}
+
+.status-text {
+    font-size: 11px;
+    color: #000080;
+    padding-left: 6px;
+}
+
+#desktop {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #008080;
+    z-index: 1;
+}
+
+#login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 90;
+}
+
+.dialog-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: 95;
+}
+
+.dialog-window {
+    position: absolute;
+    width: 320px;
+    left: 50%;
+    top: 50%;
+    margin-left: -160px;
+    margin-top: -90px;
+    z-index: 100;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.desktop-icons {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 2;
+}
+
+.desktop-icon {
+    display: block;
+    width: 104px;
+    margin-bottom: 16px;
+    padding: 6px 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #ffffff;
+    text-shadow: 1px 1px 0 #000000;
+    cursor: pointer;
+    text-align: center;
+}
+
+.desktop-icon:focus {
+    outline: 1px dotted #ffffff;
+    outline-offset: -2px;
+}
+
+.desktop-icon img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto 6px auto;
+    image-rendering: pixelated;
+}
+
+.window-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 32px;
+    overflow: hidden;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.os-window,
+.app-window {
+    position: absolute;
+    min-width: 360px;
+    min-height: 220px;
+    pointer-events: auto;
+}
+
+.app-window .title-bar {
+    cursor: move;
+}
+
+.app-window.is-maximized {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.desktop-window {
+    width: 920px;
+    height: 640px;
+    left: 60px;
+    top: 40px;
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
+}
+
+.messenger-window {
+    width: 640px;
+    height: 420px;
+    left: 140px;
+    top: 90px;
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
+}
+
+.call-window {
+    width: 520px;
+    height: 340px;
+    left: 220px;
+    top: 130px;
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
+}
+
+.taskbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32px;
+    background: #c0c0c0;
+    box-shadow: inset 0 1px #ffffff, inset 0 2px #dfdfdf, inset 0 -1px #808080;
+}
+
+.start-button {
+    float: left;
+    margin: 4px 6px;
+    min-width: 68px;
+}
+
+.taskbar-clock {
+    float: right;
+    margin: 4px 6px;
+    padding: 2px 6px;
+    box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+    background: #c0c0c0;
+    min-width: 60px;
+    text-align: center;
+}
+
+.taskbar-windows {
+    margin: 4px 74px 4px 80px;
+    height: 24px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.taskbar-button {
+    min-width: 120px;
+    height: 24px;
+    margin-right: 4px;
+    padding: 0 8px;
+}
+
+.taskbar-button.active {
+    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}
+
+.start-menu {
+    position: absolute;
+    left: 6px;
+    bottom: 36px;
+    width: 280px;
+    z-index: 120;
+}
+
+.start-menu .window-body {
+    margin: 6px;
+}
+
+.start-panels {
+    margin-top: 8px;
+}
+
+.start-username {
+    padding: 4px 6px;
+    min-height: 20px;
+}
+
+.start-actions {
+    margin-top: 10px;
+    justify-content: flex-end;
+}

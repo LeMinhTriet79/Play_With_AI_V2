@@ -4,17 +4,19 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Data // Tự động sinh Getter/Setter nhờ thư viện Lombok
-@Document(collection = "chat_messages") // Lưu vào bảng tên là chat_messages trong MongoDB
+@Data
+@Document(collection = "chat_messages")
 public class ChatMessage {
     @Id
-    private String id;          // Mã tin nhắn tự động tạo
-    private String sender;      // Tên người gửi (VD: "Triết", "Bạn A")
-    private String content;     // Nội dung tin nhắn
-    private String timestamp;   // Thời gian gửi
-    private MessageType type;   // Loại tin nhắn (CHAT, JOIN, LEAVE)
+    private String id;
+    private String sender;      // Người gửi
+    private String receiver;    // Người nhận (Dùng cho Private Chat)
+    private String roomId;      // Mã phòng (Dùng cho Game/Phòng chung)
+    private String content;     // Nội dung
+    private String timestamp;   // Thời gian
+    private MessageType type;   // Loại tin nhắn
 
     public enum MessageType {
-        CHAT, JOIN, LEAVE
+        CHAT, JOIN, LEAVE, GAME_MOVE // Thêm GAME_MOVE để truyền nước cờ
     }
 }
