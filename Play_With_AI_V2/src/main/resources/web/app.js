@@ -30,40 +30,6 @@ function parsePayload(payload) {
     return [];
 }
 
-function ensureDialogElements() {
-    if (document.getElementById('dialogBackdrop')) {
-        return;
-    }
-
-    const backdrop = document.createElement('div');
-    backdrop.id = 'dialogBackdrop';
-    backdrop.className = 'modal-backdrop';
-    backdrop.setAttribute('hidden', '');
-    backdrop.style.display = 'none';
-    backdrop.innerHTML = `
-        <div class="window dialog-window" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
-            <div class="title-bar">
-                <div class="title-bar-text" id="dialogTitle">Dialog</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Close" id="dialogClose"></button>
-                </div>
-            </div>
-            <div class="window-body dialog-body">
-                <p class="dialog-message" id="dialogMessage"></p>
-                <div class="field-row" id="dialogInputRow">
-                    <label for="dialogInput" id="dialogInputLabel">Input</label>
-                    <input id="dialogInput" type="text" class="dialog-input">
-                </div>
-                <div class="dialog-actions">
-                    <button id="dialogOk" class="default">OK</button>
-                    <button id="dialogCancel">Cancel</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(backdrop);
-}
-
 function setTab(tabId) {
     const chatTab = document.getElementById('tab-chat');
     const settingsTab = document.getElementById('tab-settings');
@@ -92,14 +58,6 @@ window.updateSessions = function(payload) {
         cell.textContent = session.title;
         cell.title = session.title;
         row.appendChild(cell);
-
-        row.onclick = () => {
-            setSelectedSession(row.dataset.id);
-            const id = Number(row.dataset.id);
-            if (!Number.isNaN(id)) {
-                bridgeCall('selectSession', id);
-            }
-        };
 
         tbody.appendChild(row);
     });
@@ -180,15 +138,14 @@ window.setSelectedSession = function(id) {
     }
 
     panel.dataset.selectedId = String(id);
-    window.__currentSessionId = String(id);
     highlightRowById(tbody, String(id));
 };
 
 window.setBusy = function(busy) {
     document.getElementById('btnSend').disabled = !!busy;
     document.getElementById('btnNewChat').disabled = !!busy;
-    document.getElementById('btnRename').disabled = false;
-    document.getElementById('btnDelete').disabled = false;
+    document.getElementById('btnRename').disabled = !!busy;
+    document.getElementById('btnDelete').disabled = !!busy;
     document.getElementById('btnAddKey').disabled = !!busy;
     document.getElementById('btnDelKey').disabled = !!busy;
     document.getElementById('btnSetKey').disabled = !!busy;
@@ -212,86 +169,7 @@ window.setStatus = function(text) {
     document.getElementById('statusText').textContent = text;
 };
 
-window.showInfoDialog = function(message, title) {
-    ensureDialogElements();
-    const dialogHost = document.getElementById('dialogBackdrop');
-    if (dialogHost && typeof window.__openDialog === 'function') {
-        window.__openDialog({
-            title: title || 'Thông báo',
-            message: message || '',
-            showInput: false,
-            okText: 'OK',
-            cancelText: 'Cancel',
-            hideCancel: true,
-        }, () => {
-        });
-        return;
-    }
-
-    alert(message || '');
-};
-
-window.handleRenameClick = function() {
-    const id = resolveSelectedSessionId();
-    if (Number.isNaN(id)) {
-        return;
-    }
-
-    const currentTitle = getSelectedSessionTitle();
-    ensureDialogElements();
-    const dialogHost = document.getElementById('dialogBackdrop');
-    if (dialogHost && typeof window.__openDialog === 'function') {
-        window.__openDialog({
-            title: 'Đổi tên đoạn chat',
-            message: 'Nhập tên mới cho đoạn chat:',
-            inputLabel: 'Tên mới',
-            defaultValue: currentTitle,
-            showInput: true,
-            okText: 'OK',
-            cancelText: 'Cancel',
-        }, (result) => {
-            if (result && result.confirmed && result.value.trim()) {
-                bridgeCall('handleRenameSession', id, result.value.trim());
-            }
-        });
-        return;
-    }
-
-    const newName = prompt('Nhập tên mới cho đoạn chat:', currentTitle);
-    if (newName && newName.trim()) {
-        bridgeCall('handleRenameSession', id, newName.trim());
-    }
-};
-
-window.handleDeleteClick = function() {
-    const id = resolveSelectedSessionId();
-    if (Number.isNaN(id)) {
-        return;
-    }
-
-    ensureDialogElements();
-    const dialogHost = document.getElementById('dialogBackdrop');
-    if (dialogHost && typeof window.__openDialog === 'function') {
-        window.__openDialog({
-            title: 'Xóa đoạn chat',
-            message: 'Bạn có chắc muốn xóa đoạn chat này?',
-            showInput: false,
-            okText: 'OK',
-            cancelText: 'Cancel',
-        }, (result) => {
-            if (result && result.confirmed) {
-                bridgeCall('handleDeleteSession', id);
-            }
-        });
-        return;
-    }
-
-    if (confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
-        bridgeCall('handleDeleteSession', id);
-    }
-};
-
-const initUi = () => {
+window.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // TIÊM CSS ĐỘNG - KẾT HỢP BIẾN CSS VÀ GIAO DIỆN CHUẨN WIN98 (BẢNG, CODE)
     // =========================================================================
@@ -356,7 +234,7 @@ const initUi = () => {
         }
         
         .message-content .window-body .sunken-panel {
-            background-color: #c0c0c0 !important;
+            background-color: var(--chat-bg-color) !important;
             border: 2px solid #808080 !important;
             border-bottom-color: #ffffff !important;
             border-right-color: #ffffff !important;
@@ -368,7 +246,6 @@ const initUi = () => {
             font-family: "Courier New", Courier, monospace !important;
             font-size: var(--chat-font-size) !important;
             color: var(--chat-text-color) !important;
-            background: transparent !important;
         }
 
         /* Inline Code: Đoạn code ngắn trong dòng chữ */
@@ -381,46 +258,9 @@ const initUi = () => {
             border-right: 1px solid #ffffff !important;
             font-size: var(--chat-font-size) !important;
         }
-
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.25);
-            z-index: 9999;
-        }
-
-        .dialog-window {
-            width: 420px;
-            max-width: calc(100% - 40px);
-        }
-
-        .dialog-body {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .dialog-message {
-            margin: 0;
-        }
-
-        .dialog-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .dialog-input {
-            width: 100%;
-        }
     `;
     document.head.appendChild(dynamicStyle);
 
-    ensureDialogElements();
 
     const chatArea = document.getElementById('chatArea');
     const userInput = document.getElementById('userInput');
@@ -433,97 +273,6 @@ const initUi = () => {
     const chatSidebar = document.getElementById('chatSidebar');
     const chatSplit = document.getElementById('chatSplit');
     const chatComposer = document.getElementById('chatComposer');
-    const dialogBackdrop = document.getElementById('dialogBackdrop');
-    const dialogTitle = document.getElementById('dialogTitle');
-    const dialogMessage = document.getElementById('dialogMessage');
-    const dialogInputRow = document.getElementById('dialogInputRow');
-    const dialogInputLabel = document.getElementById('dialogInputLabel');
-    const dialogInput = document.getElementById('dialogInput');
-    const dialogOk = document.getElementById('dialogOk');
-    const dialogCancel = document.getElementById('dialogCancel');
-    const dialogClose = document.getElementById('dialogClose');
-
-    const dialog = (() => {
-        if (!dialogBackdrop || !dialogTitle || !dialogMessage || !dialogInputRow || !dialogInput || !dialogOk || !dialogCancel || !dialogClose) {
-            return { open: null };
-        }
-
-        let resolver = null;
-        let lastFocus = null;
-        let showInput = false;
-        let isOpen = false;
-
-        const closeDialog = (confirmed) => {
-            if (!isOpen) {
-                return;
-            }
-            dialogBackdrop.setAttribute('hidden', '');
-            dialogBackdrop.style.display = 'none';
-            const value = showInput ? dialogInput.value : '';
-            showInput = false;
-            isOpen = false;
-            if (lastFocus && typeof lastFocus.focus === 'function') {
-                lastFocus.focus();
-            }
-            if (resolver) {
-                resolver({ confirmed, value });
-            }
-            resolver = null;
-            lastFocus = null;
-        };
-
-        dialogOk.addEventListener('click', () => closeDialog(true));
-        dialogCancel.addEventListener('click', () => closeDialog(false));
-        dialogClose.addEventListener('click', () => closeDialog(false));
-
-        dialogBackdrop.addEventListener('keydown', (event) => {
-            if (!isOpen) {
-                return;
-            }
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                closeDialog(false);
-            } else if (event.key === 'Enter') {
-                event.preventDefault();
-                closeDialog(true);
-            }
-        });
-
-        return {
-            open: (options, onClose) => {
-                resolver = typeof onClose === 'function' ? onClose : null;
-                lastFocus = document.activeElement;
-                const opts = options || {};
-                showInput = !!opts.showInput;
-                const hideCancel = !!opts.hideCancel;
-                dialogTitle.textContent = opts.title || 'Dialog';
-                dialogMessage.textContent = opts.message || '';
-                dialogInputLabel.textContent = opts.inputLabel || 'Input';
-                dialogInputRow.hidden = !showInput;
-                dialogInput.value = opts.defaultValue || '';
-                dialogOk.textContent = opts.okText || 'OK';
-                dialogCancel.textContent = opts.cancelText || 'Cancel';
-                dialogCancel.hidden = hideCancel;
-                dialogCancel.style.display = hideCancel ? 'none' : '';
-                dialogBackdrop.removeAttribute('hidden');
-                dialogBackdrop.style.display = 'flex';
-                dialogBackdrop.tabIndex = -1;
-                dialogBackdrop.focus();
-                isOpen = true;
-
-                setTimeout(() => {
-                    if (showInput) {
-                        dialogInput.focus();
-                        dialogInput.select();
-                    } else {
-                        dialogOk.focus();
-                    }
-                }, 0);
-            },
-        };
-    })();
-
-    window.__openDialog = typeof dialog.open === 'function' ? dialog.open : null;
 
     const backgroundPresets = {
         white: { bg: '#ffffff', text: '#000000', panel: '#f8f8f8', border: '#c0c0c0' },
@@ -583,15 +332,28 @@ const initUi = () => {
         bridgeCall('handleNewSession');
     });
 
-    const renameBtn = document.getElementById('btnRename');
-    if (renameBtn) {
-        renameBtn.onclick = window.handleRenameClick;
-    }
+    document.getElementById('btnRename').addEventListener('click', () => {
+        const id = getSelectedSessionId();
+        if (Number.isNaN(id)) {
+            return;
+        }
 
-    const deleteBtn = document.getElementById('btnDelete');
-    if (deleteBtn) {
-        deleteBtn.onclick = window.handleDeleteClick;
-    }
+        const newName = prompt('Nhập tên mới cho đoạn chat:');
+        if (newName && newName.trim()) {
+            bridgeCall('handleRenameSession', id, newName);
+        }
+    });
+
+    document.getElementById('btnDelete').addEventListener('click', () => {
+        const id = getSelectedSessionId();
+        if (Number.isNaN(id)) {
+            return;
+        }
+
+        if (confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
+            bridgeCall('handleDeleteSession', id);
+        }
+    });
 
     document.getElementById('btnSend').addEventListener('click', () => {
         const text = document.getElementById('userInput').value;
@@ -726,13 +488,7 @@ const initUi = () => {
 
     setTab('chat');
     window.setBusy(false);
-};
-
-if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', initUi);
-} else {
-    initUi();
-}
+});
 
 function clearHighlightedRows(tbody) {
     Array.from(tbody.querySelectorAll('tr.highlighted')).forEach((row) => {
@@ -752,59 +508,10 @@ function highlightRowById(tbody, id) {
 
 function getSelectedSessionId() {
     const panel = document.getElementById('sessionPanel');
-    if (panel && panel.dataset.selectedId) {
-        return Number(panel.dataset.selectedId);
-    }
-
-    if (window.__currentSessionId) {
-        return Number(window.__currentSessionId);
-    }
-
-    const tbody = document.getElementById('sessionTableBody');
-    if (tbody) {
-        const row = tbody.querySelector('tr.highlighted');
-        if (row && row.dataset.id) {
-            return Number(row.dataset.id);
-        }
-        const firstRow = tbody.querySelector('tr');
-        if (firstRow && firstRow.dataset.id) {
-            return Number(firstRow.dataset.id);
-        }
-    }
-    return Number.NaN;
-}
-
-function getSelectedSessionTitle() {
-    const tbody = document.getElementById('sessionTableBody');
-    if (!tbody) {
-        return '';
-    }
-    const row = tbody.querySelector('tr.highlighted');
-    if (!row) {
-        return '';
-    }
-    const cell = row.querySelector('td');
-    return cell ? cell.textContent.trim() : '';
-}
-
-function resolveSelectedSessionId() {
-    let id = getSelectedSessionId();
-    if (!Number.isNaN(id)) {
-        return id;
-    }
-
-    const tbody = document.getElementById('sessionTableBody');
-    if (!tbody) {
+    if (!panel || !panel.dataset.selectedId) {
         return Number.NaN;
     }
-
-    const firstRow = tbody.querySelector('tr');
-    if (firstRow && firstRow.dataset.id) {
-        setSelectedSession(firstRow.dataset.id);
-        id = Number(firstRow.dataset.id);
-    }
-
-    return id;
+    return Number(panel.dataset.selectedId);
 }
 
 function getSelectedKeyId() {
