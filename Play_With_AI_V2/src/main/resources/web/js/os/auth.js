@@ -1,4 +1,8 @@
 (function() {
+    function getApiBase() {
+        return (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || 'https://play-with-ai-v2.onrender.com';
+    }
+
     function initAuth() {
         if (window.__authBound) {
             return;
@@ -121,6 +125,12 @@
     function showDesktop(username) {
         window.currentUser = username;
         setLoginVisible(false);
+        if (window.messengerUI && window.messengerUI.setSelfName) {
+            window.messengerUI.setSelfName(username);
+        }
+        if (window.messengerStomp && window.messengerStomp.connect) {
+            window.messengerStomp.connect(username);
+        }
     }
 
     async function handleLogin() {
@@ -131,7 +141,7 @@
             return;
         }
         try {
-            const data = await sendJson('http://localhost:8080/api/auth/login', {
+            const data = await sendJson(getApiBase() + '/api/auth/login', {
                 username: username,
                 password: password
             });
@@ -154,7 +164,7 @@
             return;
         }
         try {
-            const data = await sendJson('http://localhost:8080/api/auth/register', {
+            const data = await sendJson(getApiBase() + '/api/auth/register', {
                 username: username,
                 password: password
             });

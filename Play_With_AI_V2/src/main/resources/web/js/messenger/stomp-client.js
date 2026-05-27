@@ -1,5 +1,6 @@
 (function() {
-    const SOCKET_URL = 'http://localhost:8080/ws';
+    const baseUrl = (window.APP_CONFIG && window.APP_CONFIG.WS_BASE) || 'https://play-with-ai-v2.onrender.com';
+    const SOCKET_URL = baseUrl + '/ws';
     let stompClient = null;
     let connected = false;
     let currentUser = '';
@@ -63,8 +64,14 @@
     }
 
     function connect(username) {
-        if (!username || connected) {
+        if (!username) {
             return;
+        }
+        if (connected && username === currentUser) {
+            return;
+        }
+        if (connected && username !== currentUser) {
+            disconnect();
         }
         if (!window.SockJS || !window.Stomp) {
             setStatus('SockJS or Stomp missing');
@@ -104,6 +111,18 @@
         stompClient.send('/app/webrtc.signal', {}, JSON.stringify(payload));
     }
 
+    function disconnect() {
+        if (stompClient && connected) {
+            stompClient.disconnect(function() {
+                connected = false;
+                setStatus('Disconnected');
+            });
+        }
+        connected = false;
+        stompClient = null;
+        currentUser = '';
+    }
+
     function on(type, handler) {
         if (!handlers[type]) {
             handlers[type] = [];
@@ -122,6 +141,7 @@
 
     window.messengerStomp = {
         connect: connect,
+        disconnect: disconnect,
         sendPrivate: sendPrivate,
         sendSignal: sendSignal,
         on: on,

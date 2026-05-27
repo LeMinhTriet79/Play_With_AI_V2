@@ -65,12 +65,13 @@ public class MainApp extends Application {
             webEngine.load(devUrl);
             primaryStage.setTitle("Play With AI - Windows 98 Edition (DEV)");
         } else {
+            // Đã sửa lỗi ở đây: Xóa đoạn "?v=" + System.currentTimeMillis() đối với giao thức jar:
             URL url = getClass().getResource("/web/index.html");
             if (url != null) {
-                String classUrl = url.toExternalForm() + "?v=" + System.currentTimeMillis();
+                String classUrl = url.toExternalForm();
                 System.out.println("[WebView] Loading classpath HTML: " + classUrl);
                 webEngine.load(classUrl);
-                primaryStage.setTitle("Play With AI - Windows 98 Edition (CLASSPATH)");
+                primaryStage.setTitle("Play With AI - Windows 98 Edition");
             } else {
                 System.err.println("Lỗi: Không tìm thấy file /web/index.html");
             }

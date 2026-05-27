@@ -31,6 +31,34 @@
 .messenger-contacts {
     width: 220px;
     padding-right: 6px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.messenger-self {
+    margin: 6px 0;
+    padding: 6px;
+}
+
+.messenger-label {
+    min-width: 70px;
+    display: inline-block;
+}
+
+.messenger-add {
+    margin: 6px 0;
+    gap: 6px;
+}
+
+.messenger-add input {
+    flex: 1 1 auto;
+}
+
+.messenger-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #000080;
 }
 
 .messenger-chat {
@@ -55,6 +83,45 @@
     box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
 }
 
+.messenger-empty {
+    color: #808080;
+    text-align: center;
+    padding: 24px 8px;
+}
+
+.message-row {
+    display: flex;
+    margin-bottom: 6px;
+}
+
+.message-row-out {
+    justify-content: flex-end;
+}
+
+.message-bubble {
+    max-width: 72%;
+    padding: 6px 8px;
+    background: #f6f6f6;
+    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}
+
+.message-row-out .message-bubble {
+    background: #ffffff;
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #000080;
+    margin-bottom: 4px;
+}
+
+.message-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .messenger-composer {
     margin-top: 6px;
     min-height: 80px;
@@ -65,7 +132,9 @@
 }
 
 .messenger-contacts .list-panel {
-    height: calc(100% - 26px);
+    flex: 1 1 auto;
+    min-height: 120px;
+    overflow: auto;
 }
 
 .messenger-window .status-bar-field {

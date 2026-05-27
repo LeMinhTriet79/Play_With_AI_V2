@@ -111,6 +111,10 @@
         }
     }
 
+    function getApiBase() {
+        return (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || 'https://play-with-ai-v2.onrender.com';
+    }
+
     function sendJson(url, payload) {
         if (window.fetch) {
             return fetch(url, {
@@ -191,6 +195,12 @@
                 if (startMenu) {
                     startMenu.hidden = true;
                 }
+                if (window.messengerStomp && window.messengerStomp.disconnect) {
+                    window.messengerStomp.disconnect();
+                }
+                if (window.messengerUI && window.messengerUI.reset) {
+                    window.messengerUI.reset();
+                }
                 const windows = document.querySelectorAll('.app-window');
                 windows.forEach(function(win) {
                     win.hidden = true;
@@ -229,7 +239,7 @@
                     return;
                 }
                 try {
-                    const data = await sendJson('http://localhost:8080/api/auth/change-password', {
+                    const data = await sendJson(getApiBase() + '/api/auth/change-password', {
                         username: window.currentUser,
                         oldPassword: oldPass,
                         newPassword: newPass

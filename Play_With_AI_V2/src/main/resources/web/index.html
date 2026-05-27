@@ -235,21 +235,25 @@
                         <div class="toolbar-panel">
                             <strong>Danh bạ</strong>
                         </div>
+                        <div class="sunken-panel messenger-self">
+                            <div class="field-row">
+                                <span class="messenger-label">Bạn:</span>
+                                <strong id="messengerSelfName">Chưa đăng nhập</strong>
+                            </div>
+                            <div class="field-row">
+                                <span class="messenger-label">Kết nối:</span>
+                                <span id="messengerSelfStatus">Disconnected</span>
+                            </div>
+                        </div>
+                        <div class="field-row messenger-add">
+                            <input id="contactInput" type="text" placeholder="username">
+                            <button id="btnAddContact">Thêm</button>
+                        </div>
                         <div class="sunken-panel list-panel">
                             <ul class="tree-view" id="contactList" aria-label="Danh sách liên hệ">
-                                <li>Online
-                                    <ul>
-                                        <li data-user="alice">Alice</li>
-                                        <li data-user="bob">Bob</li>
-                                    </ul>
-                                </li>
-                                <li>Offline
-                                    <ul>
-                                        <li data-user="carol">Carol</li>
-                                    </ul>
-                                </li>
                             </ul>
                         </div>
+                        <div class="messenger-hint">Nhập username vào ô To để chat.</div>
                     </aside>
 
                     <section class="messenger-chat">
@@ -262,7 +266,9 @@
                             </div>
                         </div>
 
-                        <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite"></div>
+                        <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite">
+                            <div class="messenger-empty" id="messengerEmpty">Chưa có tin nhắn.</div>
+                        </div>
 
                         <div class="composer messenger-composer">
                             <textarea id="messengerInput" rows="3" placeholder="Nhập tin nhắn..."></textarea>
@@ -379,6 +385,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script src="js/config.js"></script>
 <script src="app.js"></script>
 <script src="js/os/window-manager.js"></script>
 <script src="js/os/auth.js"></script>
