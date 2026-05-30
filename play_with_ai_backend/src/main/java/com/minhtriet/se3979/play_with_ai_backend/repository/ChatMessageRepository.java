@@ -12,6 +12,6 @@ import java.util.List;
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String> {
     // Để trống! Spring Boot đã tự động viết sẵn cho bạn các hàm save(), findAll(), delete() ở dưới nền rồi.
 
-    @Query("{ '$and': [ { '$or': [ { 'sender': ?0, 'receiver': ?1 }, { 'sender': ?1, 'receiver': ?0 } ] }, { 'type': 'CHAT' } ] }")
+    @Query("{ '$and': [ { '$or': [ { 'sender': ?0, 'receiver': ?1 }, { 'sender': ?1, 'receiver': ?0 } ] }, { '$or': [ { 'type': 'CHAT' }, { 'type': null }, { 'type': { '$exists': false } } ] } ] }")
     List<ChatMessage> findConversation(String user1, String user2, Sort sort);
 }

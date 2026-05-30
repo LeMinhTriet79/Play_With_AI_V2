@@ -84,7 +84,7 @@
         stompClient.debug = null;
 
         setStatus('Connecting...');
-        stompClient.connect({}, function() {
+        stompClient.connect({ username: currentUser, login: currentUser }, function() {
             connected = true;
             setStatus('Connected');
             subscribeTopics();
@@ -109,6 +109,14 @@
             return;
         }
         stompClient.send('/app/webrtc.signal', {}, JSON.stringify(payload));
+    }
+
+    function sendRecall(payload) {
+        if (!connected || !stompClient) {
+            setStatus('Not connected');
+            return;
+        }
+        stompClient.send('/app/chat.recall', {}, JSON.stringify(payload));
     }
 
     function disconnect() {
@@ -143,6 +151,7 @@
         connect: connect,
         disconnect: disconnect,
         sendPrivate: sendPrivate,
+        sendRecall: sendRecall,
         sendSignal: sendSignal,
         on: on,
         isConnected: function() { return connected; }

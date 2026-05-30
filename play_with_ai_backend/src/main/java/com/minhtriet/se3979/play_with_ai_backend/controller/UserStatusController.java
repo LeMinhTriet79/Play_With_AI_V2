@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -23,13 +22,9 @@ public class UserStatusController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<?> getStatuses(@RequestParam(value = "exclude", required = false) String exclude) {
-        String skip = exclude == null ? "" : exclude.trim();
+    public ResponseEntity<?> getStatuses() {
         List<UserStatus> result = new ArrayList<>();
         for (User user : userRepository.findAllByOrderByUsernameAsc()) {
-            if (!skip.isEmpty() && user.getUsername().equalsIgnoreCase(skip)) {
-                continue;
-            }
             result.add(new UserStatus(user.getUsername(), user.isOnline()));
         }
         return ResponseEntity.ok(result);

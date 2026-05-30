@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Controller
 public class ChatController {
@@ -29,8 +30,8 @@ public class ChatController {
     @MessageMapping("/chat.global")
     public void sendGlobalMessage(@Payload ChatMessage chatMessage) {
         chatMessage.setTimestamp(getNow());
-        chatMessageRepository.save(chatMessage);
-        messagingTemplate.convertAndSend("/topic/public", chatMessage);
+        ChatMessage saved = chatMessageRepository.save(chatMessage);
+        messagingTemplate.convertAndSend("/topic/public", saved);
     }
 
     // 2. CHAT RIÊNG NHƯ ZALO/MESSENGER
@@ -38,12 +39,60 @@ public class ChatController {
     @MessageMapping("/chat.private")
     public void sendPrivateMessage(@Payload ChatMessage chatMessage) {
         chatMessage.setTimestamp(getNow());
-        chatMessageRepository.save(chatMessage); // Vẫn lưu lịch sử vào DB
+        chatMessage.setType(ChatMessage.MessageType.CHAT);
+        chatMessage.setRecalled(false);
+        ChatMessage saved = chatMessageRepository.save(chatMessage); // Vẫn lưu lịch sử vào DB
 
         // Bắn tin nhắn trực tiếp vào "hộp thư" của người nhận
-        messagingTemplate.convertAndSend("/queue/private." + chatMessage.getReceiver(), chatMessage);
+        messagingTemplate.convertAndSend("/queue/private." + saved.getReceiver(), saved);
         // Bắn ngược lại cho người gửi để hiển thị lên màn hình của họ
-        messagingTemplate.convertAndSend("/queue/private." + chatMessage.getSender(), chatMessage);
+        messagingTemplate.convertAndSend("/queue/private." + saved.getSender(), saved);
+    }
+
+    // 5. THU HỒI TIN NHẮN
+    @MessageMapping("/chat.recall")
+    public void recallMessage(@Payload ChatRecallRequest request) {
+        if (request == null || request.getId() == null || request.getSender() == null) {
+            return;
+        }
+        Optional<ChatMessage> existing = chatMessageRepository.findById(request.getId());
+        if (existing.isEmpty()) {
+            return;
+        }
+        ChatMessage message = existing.get();
+        if (!request.getSender().equals(message.getSender())) {
+            return;
+        }
+        if (message.isRecalled()) {
+            return;
+        }
+        message.setRecalled(true);
+        message.setContent("Tin nhắn đã thu hồi.");
+        chatMessageRepository.save(message);
+
+        messagingTemplate.convertAndSend("/queue/private." + message.getReceiver(), message);
+        messagingTemplate.convertAndSend("/queue/private." + message.getSender(), message);
+    }
+
+    public static class ChatRecallRequest {
+        private String id;
+        private String sender;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getSender() {
+            return sender;
+        }
+
+        public void setSender(String sender) {
+            this.sender = sender;
+        }
     }
 
     // 3. CHAT TRONG PHÒNG GAME HOẶC ĐÁNH CỜ CARO
