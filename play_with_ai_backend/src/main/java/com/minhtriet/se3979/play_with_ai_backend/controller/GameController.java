@@ -13,13 +13,13 @@ import java.util.Map;
  * to /topic/game/{roomId} so every subscriber in the room receives them.
  *
  * Message types handled:
- *   JOIN       – player joined the room (notifies opponent)
- *   LEAVE      – player left the room
- *   MOVE       – a chess move (sr, sc, tr, tc)
- *   RESIGN     – player resigned
- *   DRAW       – player requests draw
- *   DRAW_ACCEPT– player accepts draw
- *   CHAT       – in-game chat message
+ * JOIN – player joined the room (notifies opponent)
+ * LEAVE – player left the room
+ * MOVE – a chess move (sr, sc, tr, tc)
+ * RESIGN – player resigned
+ * DRAW – player requests draw
+ * DRAW_ACCEPT– player accepts draw
+ * CHAT – in-game chat message
  */
 @Controller
 public class GameController {

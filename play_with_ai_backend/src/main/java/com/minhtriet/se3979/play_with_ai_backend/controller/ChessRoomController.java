@@ -105,10 +105,15 @@ public class ChessRoomController {
         }
 
         broadcastRoomUpdate();
-        // Also push room-state directly into the game topic so the waiting player (A) gets updated
+        // Push a JOIN event directly into the game room topic so player A's
+        // screen updates immediately (works for BOTH old and new frontend code).
+        String joinerSide = player.equals(room.getPlayerRed()) ? "red" : "black";
         Map<String, Object> joinEvent = new java.util.HashMap<>();
-        joinEvent.put("type", "ROOM_STATE");
+        joinEvent.put("type", "JOIN");
         joinEvent.put("roomId", roomId);
+        joinEvent.put("sender", player);       // required by old frontend handler
+        joinEvent.put("player", player);
+        joinEvent.put("side", joinerSide);    // required by old frontend handler
         joinEvent.put("playerRed", room.getPlayerRed());
         joinEvent.put("playerBlack", room.getPlayerBlack());
         joinEvent.put("status", room.getStatus());
