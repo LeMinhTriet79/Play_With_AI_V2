@@ -34,6 +34,7 @@
     let roomId       = null;
     let isGameActive = false;
     let board        = [];
+    let lobbyPollTimer = null;  // periodic room-state poll while waiting
 
     // =====================================================================
     // BOARD CONSTANTS
@@ -156,6 +157,9 @@
         roomId  = room.roomId;
         mySide  = side;
 
+        // Clear any previous poll
+        if (lobbyPollTimer) { clearInterval(lobbyPollTimer); lobbyPollTimer = null; }
+
         // Switch views
         lobbyView.style.display = 'none';
         gameView.style.display  = 'flex';
@@ -175,25 +179,53 @@
         initBoard();
         addLog('HỆ THỐNG', 'Bạn đã vào bàn. Mã bàn: ' + room.roomId, 'blue');
 
-        // Check WebSocket
-        if (!window.messengerStomp || !window.messengerStomp.isConnected()) {
-            addLog('HỆ THỐNG', 'Mất kết nối WebSocket. Vui lòng F5 trang.', 'red');
-            alert('Mất kết nối WebSocket. Vui lòng F5 trang!');
-            return;
+        // Subscribe to game room topic — retry up to 5 times if not yet connected
+        function trySubscribe(attemptsLeft) {
+            if (window.messengerStomp && window.messengerStomp.isConnected()) {
+                window.messengerStomp.subscribeGame(roomId, handleIncomingMessage);
+                // Announce JOIN to everyone else in the room
+                sendGameEvent({ type: 'JOIN', player: window.currentUser, side: mySide, sender: window.currentUser });
+            } else if (attemptsLeft > 0) {
+                setTimeout(() => trySubscribe(attemptsLeft - 1), 600);
+            } else {
+                addLog('HỆ THỐNG', '⚠️ Mất kết nối WebSocket. Vui lòng F5 trang.', 'red');
+            }
         }
+        trySubscribe(5);
 
-        // Subscribe to game room topic
-        window.messengerStomp.subscribeGame(roomId, handleIncomingMessage);
-
-        // Announce JOIN to everyone else in the room
-        sendGameEvent({ type: 'JOIN', player: window.currentUser, side: mySide });
+        // Fallback polling: every 3s fetch room state from HTTP while waiting
+        if (!isGameActive) {
+            lobbyPollTimer = setInterval(() => {
+                if (isGameActive || !roomId) {
+                    clearInterval(lobbyPollTimer);
+                    lobbyPollTimer = null;
+                    return;
+                }
+                fetch(API_BASE + '/api/chess/rooms/' + roomId)
+                    .then(r => r.json())
+                    .then(updatedRoom => {
+                        if (!updatedRoom) return;
+                        if (updatedRoom.playerRed)   playerRedText.innerText   = updatedRoom.playerRed;
+                        if (updatedRoom.playerBlack) playerBlackText.innerText = updatedRoom.playerBlack;
+                        if (updatedRoom.playerRed && updatedRoom.playerBlack) {
+                            isGameActive = true;
+                            waitingOverlay.style.display = 'none';
+                            addLog('HỆ THỐNG', '✅ Đối thủ đã vào! Trận đấu bắt đầu!', 'green');
+                            updateTurnText();
+                            clearInterval(lobbyPollTimer);
+                            lobbyPollTimer = null;
+                        }
+                    })
+                    .catch(() => {});
+            }, 3000);
+        }
     }
 
     function leaveRoom() {
         if (!confirm('Bạn có chắc chắn muốn rời bàn?')) return;
 
         // Notify the opponent first (before clearing state)
-        sendGameEvent({ type: 'LEAVE', player: window.currentUser });
+        sendGameEvent({ type: 'LEAVE', player: window.currentUser, sender: window.currentUser });
 
         // Tell server to remove this player from the room
         if (roomId) {
@@ -206,6 +238,7 @@
     }
 
     function resetToLobby() {
+        if (lobbyPollTimer) { clearInterval(lobbyPollTimer); lobbyPollTimer = null; }
         gameView.style.display  = 'none';
         lobbyView.style.display = 'flex';
         roomId       = null;
