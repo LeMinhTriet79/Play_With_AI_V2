@@ -68,7 +68,7 @@ public class ChessRoomController {
         
         RoomInfo room = new RoomInfo(roomId, roomName, player, side);
         rooms.put(roomId, room);
-        messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
+        messagingTemplate.convertAndSend("/topic/public", (Object) Map.of("type", "ROOM_UPDATE"));
         return room;
     }
 
@@ -85,7 +85,7 @@ public class ChessRoomController {
             if (room.getPlayerRed() != null && room.getPlayerBlack() != null) {
                 room.setStatus("PLAYING");
             }
-            messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
+            messagingTemplate.convertAndSend("/topic/public", (Object) Map.of("type", "ROOM_UPDATE"));
         }
         return room;
     }
@@ -93,6 +93,6 @@ public class ChessRoomController {
     @DeleteMapping("/rooms/{roomId}")
     public void deleteRoom(@PathVariable String roomId) {
         rooms.remove(roomId);
-        messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
+        messagingTemplate.convertAndSend("/topic/public", (Object) Map.of("type", "ROOM_UPDATE"));
     }
 }
