@@ -189,6 +189,8 @@
 
         // Decide waiting overlay
         isGameActive = !!(room.playerRed && room.playerBlack);
+        waitingOverlay.innerText = 'đang chờ đối thủ';
+        waitingOverlay.style.background = '#e31818';
         waitingOverlay.style.display = isGameActive ? 'none' : 'block';
 
         initBoard();
