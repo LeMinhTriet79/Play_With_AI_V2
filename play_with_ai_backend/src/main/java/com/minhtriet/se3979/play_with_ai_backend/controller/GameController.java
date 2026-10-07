@@ -1,6 +1,7 @@
 package com.minhtriet.se3979.play_with_ai_backend.controller;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -16,7 +17,8 @@ public class GameController {
     }
 
     @MessageMapping("/game.move")
-    public void handleGameMove(Map<String, Object> payload) {
+    public void handleGameMove(@Payload Map<String, Object> payload) {
+        System.out.println("DEBUG GameController received: " + payload);
         String roomId = (String) payload.get("roomId");
         if (roomId != null) {
             // Broadcast the move directly to all clients in the room
