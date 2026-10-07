@@ -736,6 +736,7 @@
 
         const div = document.createElement('div');
         div.style.marginBottom = '4px';
+        div.style.wordBreak = 'break-word';
         div.innerHTML = `<span style="font-weight:bold; color:${nameColor}">${sender}</span>: <span style="color: ${forceColor ? forceColor : '#000'}">${message}</span>`;
         logArea.appendChild(div);
         logArea.scrollTop = logArea.scrollHeight;
@@ -755,8 +756,11 @@
         const gameOverDialog = document.getElementById('chessGameOverDialog');
         const gameOverMessage = document.getElementById('chessGameOverMessage');
 
+        const gameOverScore = document.getElementById('chessGameOverScore');
+
         window.showGameOverDialog = function(msg) {
             if (gameOverMessage) gameOverMessage.innerText = msg;
+            if (gameOverScore) gameOverScore.innerText = `Tỉ số: Bạn ${myScore} - ${oppScore} Địch`;
             if (gameOverDialog) gameOverDialog.style.display = 'flex';
         }
 
@@ -827,17 +831,7 @@
         const msg = chatInput ? chatInput.value.trim() : '';
         if (!msg) return;
         sendGameEvent({ type: 'CHAT', message: msg });
-        addLog('Bạn', msg, 'black');
         if (chatInput) chatInput.value = '';
-    }
-
-    function addLog(sender, text, color) {
-        if (!logArea) return;
-        const div = document.createElement('div');
-        div.style.marginBottom = '4px';
-        div.innerHTML = `<b style="color:${color || 'black'}">${sender}:</b> ${text}`;
-        logArea.appendChild(div);
-        logArea.scrollTop = logArea.scrollHeight;
     }
 
     // =====================================================================
