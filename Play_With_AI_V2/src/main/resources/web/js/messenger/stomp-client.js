@@ -124,7 +124,7 @@
             setStatus('Not connected');
             return;
         }
-        stompClient.send('/app/game.move', {}, JSON.stringify(payload));
+        stompClient.send('/app/game.event', {}, JSON.stringify(payload));
     }
 
     let currentGameSub = null;

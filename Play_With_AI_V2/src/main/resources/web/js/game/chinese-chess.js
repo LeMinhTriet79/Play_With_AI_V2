@@ -1,285 +1,338 @@
 (function() {
+    'use strict';
     const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || 'https://play-with-ai-v2.onrender.com';
-    
-    // --- LOBBY ELEMENTS ---
-    const lobbyView = document.getElementById('chess-lobby');
-    const roomList = document.getElementById('chessRoomList');
-    const btnRefreshLobby = document.getElementById('btnChessRefreshLobby');
-    const btnCreateRoom = document.getElementById('btnChessCreateRoom');
-    
-    // --- GAME ELEMENTS ---
-    const gameView = document.getElementById('chess-game-area');
-    const boardEl = document.getElementById('chessBoard');
-    const turnText = document.getElementById('chessTurnText');
-    const playerRedText = document.getElementById('chessPlayerRed');
-    const playerBlackText = document.getElementById('chessPlayerBlack');
-    const gameRoomName = document.getElementById('chessGameRoomName');
-    const logArea = document.getElementById('chessLogArea');
-    const chatInput = document.getElementById('chessChatInput');
-    const btnSendChat = document.getElementById('btnChessSendChat');
-    const btnLeave = document.getElementById('btnChessLeave');
-    const btnResign = document.getElementById('btnChessResign');
-    const btnDraw = document.getElementById('btnChessDraw');
-    const waitingOverlay = document.getElementById('chessWaitingOverlay');
-    const onlineUsersList = document.getElementById('chessOnlineUsers');
 
-    let mySide = null; // 'red' or 'black'
-    let currentTurn = 'red';
-    let isConnected = false;
+    // =====================================================================
+    // DOM ELEMENTS
+    // =====================================================================
+    const lobbyView        = document.getElementById('chess-lobby');
+    const roomList         = document.getElementById('chessRoomList');
+    const btnRefreshLobby  = document.getElementById('btnChessRefreshLobby');
+    const btnCreateRoom    = document.getElementById('btnChessCreateRoom');
+
+    const gameView         = document.getElementById('chess-game-area');
+    const boardEl          = document.getElementById('chessBoard');
+    const turnText         = document.getElementById('chessTurnText');
+    const playerRedText    = document.getElementById('chessPlayerRed');
+    const playerBlackText  = document.getElementById('chessPlayerBlack');
+    const gameRoomName     = document.getElementById('chessGameRoomName');
+    const logArea          = document.getElementById('chessLogArea');
+    const chatInput        = document.getElementById('chessChatInput');
+    const btnSendChat      = document.getElementById('btnChessSendChat');
+    const btnLeave         = document.getElementById('btnChessLeave');
+    const btnResign        = document.getElementById('btnChessResign');
+    const btnDraw          = document.getElementById('btnChessDraw');
+    const waitingOverlay   = document.getElementById('chessWaitingOverlay');
+    const onlineUsersList  = document.getElementById('chessOnlineUsers');
+
+    // =====================================================================
+    // STATE
+    // =====================================================================
+    let mySide       = null;   // 'red' | 'black'
+    let currentTurn  = 'red';
     let selectedCell = null;
-    let roomId = null;
+    let roomId       = null;
     let isGameActive = false;
+    let board        = [];
 
-    let board = [];
+    // =====================================================================
+    // BOARD CONSTANTS
+    // =====================================================================
     const INITIAL_BOARD = [
-        ['br', 'bh', 'be', 'ba', 'bg', 'ba', 'be', 'bh', 'br'],
-        ['', '', '', '', '', '', '', '', ''],
-        ['', 'bc', '', '', '', '', '', 'bc', ''],
-        ['bs', '', 'bs', '', 'bs', '', 'bs', '', 'bs'],
-        ['', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', ''],
-        ['rs', '', 'rs', '', 'rs', '', 'rs', '', 'rs'],
-        ['', 'rc', '', '', '', '', '', 'rc', ''],
-        ['', '', '', '', '', '', '', '', ''],
-        ['rr', 'rh', 're', 'ra', 'rg', 'ra', 're', 'rh', 'rr']
+        ['br','bh','be','ba','bg','ba','be','bh','br'],
+        ['',  '',  '',  '',  '',  '',  '',  '',  '' ],
+        ['',  'bc','',  '',  '',  '',  '',  'bc','' ],
+        ['bs','',  'bs','',  'bs','',  'bs','',  'bs'],
+        ['',  '',  '',  '',  '',  '',  '',  '',  '' ],
+        ['',  '',  '',  '',  '',  '',  '',  '',  '' ],
+        ['rs','',  'rs','',  'rs','',  'rs','',  'rs'],
+        ['',  'rc','',  '',  '',  '',  '',  'rc','' ],
+        ['',  '',  '',  '',  '',  '',  '',  '',  '' ],
+        ['rr','rh','re','ra','rg','ra','re','rh','rr']
     ];
 
     const PIECE_NAMES = {
-        'br': '車', 'bh': '馬', 'be': '象', 'ba': '士', 'bg': '將', 'bc': '砲', 'bs': '卒',
-        'rr': '車', 'rh': '馬', 're': '相', 'ra': '仕', 'rg': '帥', 'rc': '炮', 'rs': '兵'
+        'br':'車','bh':'馬','be':'象','ba':'士','bg':'將','bc':'砲','bs':'卒',
+        'rr':'車','rh':'馬','re':'相','ra':'仕','rg':'帥','rc':'炮','rs':'兵'
     };
 
-    // --- LOBBY LOGIC ---
+    // =====================================================================
+    // LOBBY
+    // =====================================================================
     function fetchRooms() {
         if (!window.currentUser) return;
         fetch(API_BASE + '/api/chess/rooms')
-            .then(res => res.json())
+            .then(r => r.json())
             .then(rooms => {
                 roomList.innerHTML = '';
-                if (rooms.length === 0) {
-                    roomList.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 10px;">Chưa có bàn nào. Hãy mở bàn mới!</td></tr>';
-                } else {
-                    rooms.forEach(room => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td style="padding: 5px;">#${room.roomId}</td>
-                            <td style="padding: 5px;">10p</td>
-                            <td style="padding: 5px; color:red; font-weight:bold;">
-                                <div style="display:inline-block; width:8px; height:8px; background:red; margin-right:5px;"></div>
-                                ${room.playerRed || '-'}
-                            </td>
-                            <td style="padding: 5px; font-weight:bold;">
-                                <div style="display:inline-block; width:8px; height:8px; background:black; margin-right:5px;"></div>
-                                ${room.playerBlack || '-'}
-                            </td>
-                            <td style="padding: 5px;">
-                                <button style="background: #eee; border: 1px solid #ccc; padding: 2px 10px; cursor: pointer;">&gt;&gt;</button>
-                            </td>
-                        `;
-                        tr.style.borderBottom = '1px solid #eee';
-                        tr.style.cursor = 'pointer';
-                        tr.onmouseover = () => tr.style.background = '#f5f5f5';
-                        tr.onmouseout = () => tr.style.background = 'transparent';
-                        tr.onclick = () => joinRoom(room);
-                        roomList.appendChild(tr);
-                    });
+                if (!rooms.length) {
+                    roomList.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:10px;">Chưa có bàn nào. Hãy mở bàn mới!</td></tr>';
+                    return;
                 }
+                rooms.forEach(room => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #eee';
+                    tr.style.cursor = 'pointer';
+                    tr.innerHTML = `
+                        <td style="padding:5px;">#${room.roomId}</td>
+                        <td style="padding:5px;">10p</td>
+                        <td style="padding:5px;color:red;font-weight:bold;">
+                            <span style="display:inline-block;width:8px;height:8px;background:red;margin-right:4px;"></span>
+                            ${room.playerRed || '-'}
+                        </td>
+                        <td style="padding:5px;font-weight:bold;">
+                            <span style="display:inline-block;width:8px;height:8px;background:#222;margin-right:4px;"></span>
+                            ${room.playerBlack || '-'}
+                        </td>
+                        <td style="padding:5px;">
+                            <button style="background:#eee;border:1px solid #ccc;padding:2px 10px;cursor:pointer;">&gt;&gt;</button>
+                        </td>
+                    `;
+                    tr.onmouseover = () => tr.style.background = '#f5f5f5';
+                    tr.onmouseout  = () => tr.style.background = 'transparent';
+                    tr.onclick = () => joinRoom(room);
+                    roomList.appendChild(tr);
+                });
             })
-            .catch(err => console.error(err));
-            
+            .catch(e => console.error('fetchRooms error', e));
+
+        // Fetch online users
         if (onlineUsersList) {
             fetch(API_BASE + '/api/users/status')
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(users => {
                     onlineUsersList.innerHTML = '';
                     users.forEach(u => {
                         const isMe = u.username === window.currentUser;
-                        const color = u.online ? 'green' : 'gray';
-                        const textColor = u.online ? 'black' : '#888';
-                        const label = isMe ? `${u.username} (Bạn)` : u.username;
-                        const div = document.createElement('div');
-                        div.style.marginBottom = '5px';
-                        div.style.color = textColor;
-                        div.innerHTML = `<div style="display:inline-block; width:8px; height:8px; background:${color}; margin-right:5px;"></div> ${label}`;
+                        const dot  = u.online ? 'green' : 'gray';
+                        const div  = document.createElement('div');
+                        div.style.cssText = `margin-bottom:4px;color:${u.online?'black':'#888'}`;
+                        div.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:${dot};margin-right:5px;border-radius:50%;"></span>${u.username}${isMe?' (Bạn)':''}`;
                         onlineUsersList.appendChild(div);
                     });
                 })
-                .catch(err => {
-                    onlineUsersList.innerHTML = '<span style="color:red;">Lỗi tải danh sách</span>';
-                });
+                .catch(() => {});
         }
     }
 
     function createRoom() {
-        if (!window.currentUser) {
-            alert('Vui lòng đăng nhập!');
-            return;
-        }
-        // Tạm thời fix tạo phòng ở phe Đỏ
-        const payload = {
-            player: window.currentUser,
-            roomName: 'Bàn của ' + window.currentUser,
-            side: 'red'
-        };
+        if (!window.currentUser) { alert('Vui lòng đăng nhập!'); return; }
         fetch(API_BASE + '/api/chess/rooms', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ player: window.currentUser, roomName: 'Bàn của ' + window.currentUser, side: 'red' })
         })
-        .then(res => res.json())
-        .then(room => {
-            enterGameRoom(room, 'red');
-        });
+        .then(r => r.json())
+        .then(room => enterGameRoom(room, 'red'))
+        .catch(e => console.error(e));
     }
 
     function joinRoom(room) {
-        if (!window.currentUser) {
-            alert('Vui lòng đăng nhập!');
-            return;
-        }
-        if (room.playerRed === window.currentUser) {
-            enterGameRoom(room, 'red');
-            return;
-        }
-        if (room.playerBlack === window.currentUser) {
-            enterGameRoom(room, 'black');
-            return;
-        }
-        if (room.status === 'PLAYING') {
-            alert('Bàn này đã đủ người chơi!');
-            return;
-        }
-        
+        if (!window.currentUser) { alert('Vui lòng đăng nhập!'); return; }
+
+        // Already in room?
+        if (room.playerRed === window.currentUser) { enterGameRoom(room, 'red'); return; }
+        if (room.playerBlack === window.currentUser) { enterGameRoom(room, 'black'); return; }
+
+        if (room.status === 'PLAYING') { alert('Bàn này đã đủ người chơi!'); return; }
+
         fetch(API_BASE + '/api/chess/rooms/' + room.roomId + '/join', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ player: window.currentUser })
         })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(updatedRoom => {
             const side = updatedRoom.playerRed === window.currentUser ? 'red' : 'black';
             enterGameRoom(updatedRoom, side);
-        });
+        })
+        .catch(e => console.error(e));
     }
 
-    // --- GAME ROOM LOGIC ---
+    // =====================================================================
+    // ENTER / LEAVE ROOM
+    // =====================================================================
     function enterGameRoom(room, side) {
-        roomId = room.roomId;
-        mySide = side;
-        lobbyView.style.display = 'none';
-        gameView.style.display = 'flex';
-        
-        gameRoomName.innerText = `bàn #${room.roomId}`;
-        playerRedText.innerText = room.playerRed || '-';
-        playerBlackText.innerText = room.playerBlack || '-';
-        logArea.innerHTML = '';
-        
-        isGameActive = (room.playerRed && room.playerBlack);
-        if (isGameActive) {
-            waitingOverlay.style.display = 'none';
-        } else {
-            waitingOverlay.style.display = 'block';
-        }
-        
-        initBoard();
-        addLog('HỆ THỐNG', 'Bạn đã vào bàn.', 'blue');
+        roomId  = room.roomId;
+        mySide  = side;
 
+        // Switch views
+        lobbyView.style.display = 'none';
+        gameView.style.display  = 'flex';
+
+        // Update header
+        gameRoomName.innerText      = `bàn #${room.roomId}`;
+        playerRedText.innerText     = room.playerRed   || '-';
+        playerBlackText.innerText   = room.playerBlack || '-';
+        logArea.innerHTML           = '';
+        currentTurn = 'red';
+        selectedCell = null;
+
+        // Decide waiting overlay
+        isGameActive = !!(room.playerRed && room.playerBlack);
+        waitingOverlay.style.display = isGameActive ? 'none' : 'block';
+
+        initBoard();
+        addLog('HỆ THỐNG', 'Bạn đã vào bàn. Mã bàn: ' + room.roomId, 'blue');
+
+        // Check WebSocket
         if (!window.messengerStomp || !window.messengerStomp.isConnected()) {
-            alert('Mất kết nối WebSocket. Vui lòng F5 lại trang.');
+            addLog('HỆ THỐNG', 'Mất kết nối WebSocket. Vui lòng F5 trang.', 'red');
+            alert('Mất kết nối WebSocket. Vui lòng F5 trang!');
             return;
         }
 
+        // Subscribe to game room topic
         window.messengerStomp.subscribeGame(roomId, handleIncomingMessage);
-        
-        // Announce join
-        sendGameMessage({ type: 'JOIN', player: window.currentUser, side: mySide });
+
+        // Announce JOIN to everyone else in the room
+        sendGameEvent({ type: 'JOIN', player: window.currentUser, side: mySide });
     }
 
     function leaveRoom() {
         if (!confirm('Bạn có chắc chắn muốn rời bàn?')) return;
-        sendGameMessage({ type: 'LEAVE', player: window.currentUser });
-        
+
+        // Notify the opponent first (before clearing state)
+        sendGameEvent({ type: 'LEAVE', player: window.currentUser });
+
+        // Tell server to remove this player from the room
         if (roomId) {
-            fetch(API_BASE + '/api/chess/rooms/' + roomId, {
+            fetch(API_BASE + '/api/chess/rooms/' + roomId + '?player=' + encodeURIComponent(window.currentUser), {
                 method: 'DELETE'
             }).catch(e => console.log(e));
         }
 
-        gameView.style.display = 'none';
+        resetToLobby();
+    }
+
+    function resetToLobby() {
+        gameView.style.display  = 'none';
         lobbyView.style.display = 'flex';
-        roomId = null;
-        isConnected = false;
+        roomId       = null;
         isGameActive = false;
+        selectedCell = null;
         fetchRooms();
     }
 
-    // --- MESSAGING ---
-    function sendGameMessage(payload) {
-        payload.roomId = roomId;
-        payload.sender = window.currentUser;
+    // =====================================================================
+    // MESSAGING
+    // =====================================================================
+    function sendGameEvent(extraFields) {
+        if (!roomId) return;
+        const payload = Object.assign({ roomId, sender: window.currentUser }, extraFields);
         if (window.messengerStomp && window.messengerStomp.sendGameMove) {
             window.messengerStomp.sendGameMove(payload);
         }
     }
 
+    /**
+     * Central handler for ALL incoming WebSocket messages from the game room.
+     * Called for EVERY subscriber including the sender, so we must guard
+     * against processing our own events where appropriate.
+     */
     function handleIncomingMessage(payload) {
-        if (payload.type === 'JOIN') {
-            if (payload.sender !== window.currentUser) {
-                addLog('HỆ THỐNG', `${payload.sender} đã tham gia trận đấu.`, 'blue');
-                if (payload.side === 'red') playerRedText.innerText = payload.sender;
-                if (payload.side === 'black') playerBlackText.innerText = payload.sender;
-                
-                // Khi có đủ 2 người, ẩn dòng chờ đối thủ
-                const redPlayer = playerRedText.innerText;
-                const blackPlayer = playerBlackText.innerText;
+        if (!payload || !payload.type) return;
+        const fromMe = payload.sender === window.currentUser;
+
+        switch (payload.type) {
+
+            case 'ROOM_STATE': {
+                // Pushed by server when the 2nd player joins via HTTP.
+                // This is the notification A was waiting for.
+                const redPlayer   = payload.playerRed   || playerRedText.innerText;
+                const blackPlayer = payload.playerBlack || playerBlackText.innerText;
+                playerRedText.innerText   = redPlayer;
+                playerBlackText.innerText = blackPlayer;
                 if (redPlayer !== '-' && blackPlayer !== '-') {
                     isGameActive = true;
                     waitingOverlay.style.display = 'none';
+                    addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
                     updateTurnText();
                 }
+                break;
             }
-        } else if (payload.type === 'LEAVE') {
-            addLog('HỆ THỐNG', `${payload.sender} đã rời bàn.`, 'red');
-            isGameActive = false;
-            updateTurnText();
-        } else if (payload.type === 'CHAT') {
-            const color = payload.sender === window.currentUser ? 'black' : 'gray';
-            addLog(payload.sender, payload.message, color);
-        } else if (payload.type === 'MOVE') {
-            if (payload.sender !== window.currentUser) {
-                executeMove(payload.sr, payload.sc, payload.tr, payload.tc, false);
-            }
-        } else if (payload.type === 'RESIGN') {
-            addLog('HỆ THỐNG', `${payload.sender} đã đầu hàng. Bạn đã thắng!`, 'green');
-            isGameActive = false;
-            updateTurnText();
-            alert(`Đối thủ ${payload.sender} đã đầu hàng!`);
-        } else if (payload.type === 'DRAW') {
-            if (payload.sender !== window.currentUser) {
-                if (confirm(`${payload.sender} xin hòa. Bạn có đồng ý không?`)) {
-                    sendGameMessage({ type: 'DRAW_ACCEPT' });
+
+            case 'JOIN': {
+                if (fromMe) break; // Don't process your own JOIN
+                // Update opponent's name
+                if (payload.side === 'red')   playerRedText.innerText   = payload.sender;
+                if (payload.side === 'black')  playerBlackText.innerText = payload.sender;
+                addLog('HỆ THỐNG', `${payload.sender} đã tham gia trận đấu.`, 'blue');
+
+                // Check if both seats are filled
+                const red   = playerRedText.innerText;
+                const black = playerBlackText.innerText;
+                if (red && red !== '-' && black && black !== '-') {
+                    isGameActive = true;
+                    waitingOverlay.style.display = 'none';
+                    addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
+                    updateTurnText();
                 }
+                break;
             }
-        } else if (payload.type === 'DRAW_ACCEPT') {
-            addLog('HỆ THỐNG', `Hai bên đã đồng ý hòa!`, 'green');
-            isGameActive = false;
-            updateTurnText();
-            alert('Trận đấu kết thúc với kết quả Hòa!');
+
+            case 'LEAVE': {
+                if (fromMe) break;
+                addLog('HỆ THỐNG', `⚠️ ${payload.sender} đã rời bàn.`, 'red');
+                isGameActive = false;
+                // Clear the leaver's seat
+                if (payload.sender === playerRedText.innerText)   playerRedText.innerText   = '-';
+                if (payload.sender === playerBlackText.innerText) playerBlackText.innerText = '-';
+                waitingOverlay.style.display = 'block';
+                updateTurnText();
+                break;
+            }
+
+            case 'MOVE': {
+                if (fromMe) break; // Our own move already applied locally
+                executeMove(payload.sr, payload.sc, payload.tr, payload.tc, false);
+                break;
+            }
+
+            case 'RESIGN': {
+                if (fromMe) break;
+                addLog('HỆ THỐNG', `🏳️ ${payload.sender} đã đầu hàng. Bạn đã thắng!`, 'green');
+                isGameActive = false;
+                updateTurnText();
+                alert(`Đối thủ ${payload.sender} đã đầu hàng! Bạn thắng!`);
+                break;
+            }
+
+            case 'DRAW': {
+                if (fromMe) break;
+                if (confirm(`${payload.sender} xin hòa. Bạn có đồng ý không?`)) {
+                    sendGameEvent({ type: 'DRAW_ACCEPT' });
+                    addLog('HỆ THỐNG', 'Bạn đã chấp nhận hòa.', 'blue');
+                }
+                break;
+            }
+
+            case 'DRAW_ACCEPT': {
+                if (fromMe) break;
+                addLog('HỆ THỐNG', '🤝 Hai bên đã đồng ý hòa!', 'green');
+                isGameActive = false;
+                updateTurnText();
+                alert('Trận đấu kết thúc: Hòa cờ!');
+                break;
+            }
+
+            case 'CHAT': {
+                const color = fromMe ? 'black' : '#555';
+                addLog(payload.sender, payload.message, color);
+                break;
+            }
+
+            default:
+                console.log('[chess] Unknown message type:', payload.type, payload);
         }
     }
 
-    function addLog(sender, message, color = 'black') {
-        const div = document.createElement('div');
-        div.style.marginBottom = '2px';
-        div.innerHTML = `<b style="color:${color}">[${sender}]</b> ${message}`;
-        logArea.appendChild(div);
-        logArea.scrollTop = logArea.scrollHeight;
-    }
-
-    // --- BOARD LOGIC ---
+    // =====================================================================
+    // BOARD LOGIC
+    // =====================================================================
     function initBoard() {
         board = JSON.parse(JSON.stringify(INITIAL_BOARD));
-        currentTurn = 'red';
+        currentTurn  = 'red';
         selectedCell = null;
         renderBoard();
         updateTurnText();
@@ -288,148 +341,184 @@
     function renderBoard() {
         if (!boardEl) return;
         boardEl.innerHTML = '';
-        
-        let svgStr = `<svg class="chess-svg" width="450" height="500" xmlns="http://www.w3.org/2000/svg">`;
-        svgStr += `<rect x="20" y="20" width="410" height="460" fill="none" stroke="#5c3a21" stroke-width="3" />`;
-        svgStr += `<rect x="25" y="25" width="400" height="450" fill="none" stroke="#5c3a21" stroke-width="2" />`;
-        for (let i = 1; i <= 8; i++) svgStr += `<line x1="25" y1="${25 + i * 50}" x2="425" y2="${25 + i * 50}" stroke="#5c3a21" stroke-width="1.5" />`;
-        for (let i = 1; i <= 7; i++) {
-            svgStr += `<line x1="${25 + i * 50}" y1="25" x2="${25 + i * 50}" y2="225" stroke="#5c3a21" stroke-width="1.5" />`;
-            svgStr += `<line x1="${25 + i * 50}" y1="275" x2="${25 + i * 50}" y2="475" stroke="#5c3a21" stroke-width="1.5" />`;
+
+        // --- SVG board lines ---
+        const W = 450, H = 500;
+        const PAD = 25, GAP = 50;
+        let svg = `<svg class="chess-svg" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+        // Outer border
+        svg += `<rect x="${PAD}" y="${PAD}" width="${W-2*PAD}" height="${H-2*PAD}" fill="none" stroke="#5c3a21" stroke-width="3"/>`;
+
+        // Horizontal lines (rows 1-8)
+        for (let i = 1; i <= 8; i++) {
+            const y = PAD + i * GAP;
+            svg += `<line x1="${PAD}" y1="${y}" x2="${W-PAD}" y2="${y}" stroke="#5c3a21" stroke-width="1.5"/>`;
         }
-        svgStr += `<line x1="175" y1="25" x2="275" y2="125" stroke="#5c3a21" stroke-width="1.5" />`;
-        svgStr += `<line x1="275" y1="25" x2="175" y2="125" stroke="#5c3a21" stroke-width="1.5" />`;
-        svgStr += `<line x1="175" y1="475" x2="275" y2="375" stroke="#5c3a21" stroke-width="1.5" />`;
-        svgStr += `<line x1="275" y1="475" x2="175" y2="375" stroke="#5c3a21" stroke-width="1.5" />`;
-        const crosses = [[2,1],[2,7],[3,0],[3,2],[3,4],[3,6],[3,8],[7,1],[7,7],[6,0],[6,2],[6,4],[6,6],[6,8]];
-        crosses.forEach(pt => {
-            const cx = 25 + pt[1]*50, cy = 25 + pt[0]*50;
-            if (pt[1] > 0) {
-                svgStr += `<polyline points="${cx-10},${cy-5} ${cx-5},${cy-5} ${cx-5},${cy-10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
-                svgStr += `<polyline points="${cx-10},${cy+5} ${cx-5},${cy+5} ${cx-5},${cy+10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+
+        // Vertical lines (cols 1-7) — split at river
+        for (let i = 1; i <= 7; i++) {
+            const x = PAD + i * GAP;
+            svg += `<line x1="${x}" y1="${PAD}"       x2="${x}" y2="${PAD+4*GAP}" stroke="#5c3a21" stroke-width="1.5"/>`;
+            svg += `<line x1="${x}" y1="${PAD+5*GAP}" x2="${x}" y2="${H-PAD}"    stroke="#5c3a21" stroke-width="1.5"/>`;
+        }
+
+        // Palace diagonals - black side (top)
+        svg += `<line x1="${PAD+3*GAP}" y1="${PAD}"         x2="${PAD+5*GAP}" y2="${PAD+2*GAP}" stroke="#5c3a21" stroke-width="1.5"/>`;
+        svg += `<line x1="${PAD+5*GAP}" y1="${PAD}"         x2="${PAD+3*GAP}" y2="${PAD+2*GAP}" stroke="#5c3a21" stroke-width="1.5"/>`;
+
+        // Palace diagonals - red side (bottom)
+        svg += `<line x1="${PAD+3*GAP}" y1="${H-PAD}"       x2="${PAD+5*GAP}" y2="${H-PAD-2*GAP}" stroke="#5c3a21" stroke-width="1.5"/>`;
+        svg += `<line x1="${PAD+5*GAP}" y1="${H-PAD}"       x2="${PAD+3*GAP}" y2="${H-PAD-2*GAP}" stroke="#5c3a21" stroke-width="1.5"/>`;
+
+        // Cannon / soldier tick marks
+        const ticks = [[2,1],[2,7],[3,0],[3,2],[3,4],[3,6],[3,8],[7,1],[7,7],[6,0],[6,2],[6,4],[6,6],[6,8]];
+        const T = 5, L = 10;
+        ticks.forEach(([row, col]) => {
+            const cx = PAD + col * GAP;
+            const cy = PAD + row * GAP;
+            if (col > 0) { // left tick
+                svg += `<polyline points="${cx-L},${cy-T} ${cx-T},${cy-T} ${cx-T},${cy-L}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+                svg += `<polyline points="${cx-L},${cy+T} ${cx-T},${cy+T} ${cx-T},${cy+L}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
             }
-            if (pt[1] < 8) {
-                svgStr += `<polyline points="${cx+10},${cy-5} ${cx+5},${cy-5} ${cx+5},${cy-10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
-                svgStr += `<polyline points="${cx+10},${cy+5} ${cx+5},${cy+5} ${cx+5},${cy+10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+            if (col < 8) { // right tick
+                svg += `<polyline points="${cx+L},${cy-T} ${cx+T},${cy-T} ${cx+T},${cy-L}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+                svg += `<polyline points="${cx+L},${cy+T} ${cx+T},${cy+T} ${cx+T},${cy+L}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
             }
         });
-        svgStr += `</svg>`;
-        boardEl.innerHTML = svgStr;
-        
+
+        // River text
+        svg += `<text x="${W/2}" y="${PAD+4.5*GAP+6}" text-anchor="middle" font-size="13" fill="#5c3a21" font-family="ms_sans_serif,serif">楚 河　　　漢 界</text>`;
+
+        svg += `</svg>`;
+        boardEl.innerHTML = svg;
+
+        // --- Pieces and click areas ---
         for (let r = 0; r < 10; r++) {
             for (let c = 0; c < 9; c++) {
+                // For black side, flip the visual board
                 const actualR = mySide === 'black' ? 9 - r : r;
                 const actualC = mySide === 'black' ? 8 - c : c;
-                const vx = 25 + c * 50;
-                const vy = 25 + r * 50;
+                const vx = PAD + c * GAP;
+                const vy = PAD + r * GAP;
 
-                const clickArea = document.createElement('div');
-                clickArea.className = 'intersection-click';
-                clickArea.style.left = vx + 'px';
-                clickArea.style.top = vy + 'px';
-                clickArea.dataset.r = actualR;
-                clickArea.dataset.c = actualC;
-                clickArea.onclick = () => onCellClick(actualR, actualC);
-                boardEl.appendChild(clickArea);
+                // Click zone
+                const zone = document.createElement('div');
+                zone.className = 'intersection-click';
+                zone.style.left = vx + 'px';
+                zone.style.top  = vy + 'px';
+                zone.dataset.r  = actualR;
+                zone.dataset.c  = actualC;
+                zone.onclick    = () => onCellClick(actualR, actualC);
+                boardEl.appendChild(zone);
 
+                // Piece
                 const piece = board[actualR][actualC];
                 if (piece) {
                     const pEl = document.createElement('div');
-                    pEl.className = 'chess-piece ' + (piece.startsWith('r') ? 'red' : 'black');
-                    pEl.innerText = PIECE_NAMES[piece];
+                    pEl.className = 'chess-piece ' + (piece[0] === 'r' ? 'red' : 'black');
+                    pEl.innerText = PIECE_NAMES[piece] || piece;
                     pEl.style.left = vx + 'px';
-                    pEl.style.top = vy + 'px';
+                    pEl.style.top  = vy + 'px';
                     pEl.id = `piece-${actualR}-${actualC}`;
+                    if (selectedCell && selectedCell.r === actualR && selectedCell.c === actualC) {
+                        pEl.classList.add('selected');
+                    }
                     pEl.onclick = () => onCellClick(actualR, actualC);
                     boardEl.appendChild(pEl);
                 }
             }
         }
+
+        // Re-render move indicators
+        if (selectedCell) renderMoveIndicators();
     }
 
+    function renderMoveIndicators() {
+        for (let r = 0; r < 10; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (!isValidMove(selectedCell.r, selectedCell.c, r, c)) continue;
+                const vr = mySide === 'black' ? 9 - r : r;
+                const vc = mySide === 'black' ? 8 - c : c;
+                const ind = document.createElement('div');
+                ind.className = 'move-indicator' + (board[r][c] ? ' capture' : '');
+                ind.style.left = (PAD + vc * 50) + 'px';
+                ind.style.top  = (PAD + vr * 50) + 'px';
+                ind.onclick = (e) => { e.stopPropagation(); onCellClick(r, c); };
+                boardEl.appendChild(ind);
+            }
+        }
+    }
+
+    // =====================================================================
+    // GAME RULES
+    // =====================================================================
     function isValidMove(sr, sc, tr, tc) {
         const p = board[sr][sc];
         if (!p) return false;
-        const color = p[0];
-        const type = p[1];
+        const color  = p[0];
+        const type   = p[1];
         const target = board[tr][tc];
-        if (target && target[0] === color) return false; // Cannot capture own piece
-        
-        const dr = tr - sr;
-        const dc = tc - sc;
-        const absDr = Math.abs(dr);
-        const absDc = Math.abs(dc);
+        if (target && target[0] === color) return false;
 
-        if (type === 'r') { // Rook
-            if (sr !== tr && sc !== tc) return false;
-            let stepR = sr === tr ? 0 : (tr > sr ? 1 : -1);
-            let stepC = sc === tc ? 0 : (tc > sc ? 1 : -1);
-            let r = sr + stepR, c = sc + stepC;
-            while (r !== tr || c !== tc) {
-                if (board[r][c]) return false;
-                r += stepR; c += stepC;
-            }
-            return true;
-        }
-        if (type === 'h') { // Knight
-            if (absDr === 2 && absDc === 1) {
-                if (board[sr + dr/2][sc]) return false;
+        const dr = tr - sr, dc = tc - sc;
+        const absDr = Math.abs(dr), absDc = Math.abs(dc);
+
+        switch (type) {
+            case 'r': { // Rook
+                if (sr !== tr && sc !== tc) return false;
+                const sr2 = sr === tr ? 0 : (tr > sr ? 1 : -1);
+                const sc2 = sc === tc ? 0 : (tc > sc ? 1 : -1);
+                let r = sr + sr2, c = sc + sc2;
+                while (r !== tr || c !== tc) { if (board[r][c]) return false; r += sr2; c += sc2; }
                 return true;
             }
-            if (absDr === 1 && absDc === 2) {
-                if (board[sr][sc + dc/2]) return false;
+            case 'h': { // Horse/Knight
+                if (absDr === 2 && absDc === 1) { if (board[sr + (dr > 0 ? 1 : -1)][sc]) return false; return true; }
+                if (absDr === 1 && absDc === 2) { if (board[sr][sc + (dc > 0 ? 1 : -1)]) return false; return true; }
+                return false;
+            }
+            case 'c': { // Cannon
+                if (sr !== tr && sc !== tc) return false;
+                const sr2 = sr === tr ? 0 : (tr > sr ? 1 : -1);
+                const sc2 = sc === tc ? 0 : (tc > sc ? 1 : -1);
+                let r = sr + sr2, c = sc + sc2, count = 0;
+                while (r !== tr || c !== tc) { if (board[r][c]) count++; r += sr2; c += sc2; }
+                return target ? count === 1 : count === 0;
+            }
+            case 'e': { // Elephant
+                if (absDr !== 2 || absDc !== 2) return false;
+                if (color === 'r' && tr < 5) return false;
+                if (color === 'b' && tr > 4) return false;
+                return !board[sr + dr/2][sc + dc/2];
+            }
+            case 'a': { // Advisor
+                if (absDr !== 1 || absDc !== 1) return false;
+                if (tc < 3 || tc > 5) return false;
+                if (color === 'r' && tr < 7) return false;
+                if (color === 'b' && tr > 2) return false;
                 return true;
             }
-            return false;
-        }
-        if (type === 'c') { // Cannon
-            if (sr !== tr && sc !== tc) return false;
-            let stepR = sr === tr ? 0 : (tr > sr ? 1 : -1);
-            let stepC = sc === tc ? 0 : (tc > sc ? 1 : -1);
-            let r = sr + stepR, c = sc + stepC;
-            let count = 0;
-            while (r !== tr || c !== tc) {
-                if (board[r][c]) count++;
-                r += stepR; c += stepC;
-            }
-            if (target) return count === 1;
-            return count === 0;
-        }
-        if (type === 'e') { // Elephant
-            if (absDr !== 2 || absDc !== 2) return false;
-            if (color === 'r' && tr < 5) return false;
-            if (color === 'b' && tr > 4) return false;
-            if (board[sr + dr/2][sc + dc/2]) return false;
-            return true;
-        }
-        if (type === 'a') { // Advisor
-            if (absDr !== 1 || absDc !== 1) return false;
-            if (tc < 3 || tc > 5) return false;
-            if (color === 'r' && tr < 7) return false;
-            if (color === 'b' && tr > 2) return false;
-            return true;
-        }
-        if (type === 'g') { // General
-            if (absDr + absDc !== 1) return false;
-            if (tc < 3 || tc > 5) return false;
-            if (color === 'r' && tr < 7) return false;
-            if (color === 'b' && tr > 2) return false;
-            return true;
-        }
-        if (type === 's') { // Soldier
-            if (color === 'r') {
-                if (dr > 0) return false;
-                if (sr > 4 && absDc > 0) return false;
+            case 'g': { // General
                 if (absDr + absDc !== 1) return false;
-                return true;
-            } else {
-                if (dr < 0) return false;
-                if (sr < 5 && absDc > 0) return false;
-                if (absDr + absDc !== 1) return false;
+                if (tc < 3 || tc > 5) return false;
+                if (color === 'r' && tr < 7) return false;
+                if (color === 'b' && tr > 2) return false;
                 return true;
             }
+            case 's': { // Soldier/Pawn
+                if (color === 'r') {
+                    if (dr > 0) return false;           // can only move forward (up for red)
+                    if (sr > 4 && absDc > 0) return false; // before crossing river, no sideways
+                    return absDr + absDc === 1;
+                } else {
+                    if (dr < 0) return false;           // can only move forward (down for black)
+                    if (sr < 5 && absDc > 0) return false;
+                    return absDr + absDc === 1;
+                }
+            }
+            default: return false;
         }
-        return false;
     }
 
     function onCellClick(r, c) {
@@ -437,155 +526,136 @@
             alert('Trận đấu chưa bắt đầu hoặc đã kết thúc!');
             return;
         }
-        if (currentTurn !== mySide) {
-            return;
-        }
+        if (currentTurn !== mySide) return; // Not my turn
 
-        const piece = board[r][c];
+        const piece    = board[r][c];
         const isMyPiece = piece && piece[0] === mySide[0];
 
         if (selectedCell) {
             if (isMyPiece) {
-                selectedCell = {r, c};
-                updateHighlight();
+                // Re-select another piece
+                selectedCell = { r, c };
+                renderBoard();
+            } else if (isValidMove(selectedCell.r, selectedCell.c, r, c)) {
+                executeMove(selectedCell.r, selectedCell.c, r, c, true);
+                selectedCell = null;
+                renderBoard();
             } else {
-                if (isValidMove(selectedCell.r, selectedCell.c, r, c)) {
-                    executeMove(selectedCell.r, selectedCell.c, r, c, true);
-                    selectedCell = null;
-                    updateHighlight();
-                }
+                // Invalid move — deselect
+                selectedCell = null;
+                renderBoard();
             }
         } else {
             if (isMyPiece) {
-                selectedCell = {r, c};
-                updateHighlight();
-            }
-        }
-    }
-
-    function updateHighlight() {
-        document.querySelectorAll('.chess-piece.selected').forEach(el => el.classList.remove('selected'));
-        document.querySelectorAll('.move-indicator').forEach(el => el.remove());
-        
-        if (selectedCell) {
-            const pEl = document.getElementById(`piece-${selectedCell.r}-${selectedCell.c}`);
-            if (pEl) pEl.classList.add('selected');
-
-            for (let r = 0; r < 10; r++) {
-                for (let c = 0; c < 9; c++) {
-                    if (isValidMove(selectedCell.r, selectedCell.c, r, c)) {
-                        const vr = mySide === 'black' ? 9 - r : r;
-                        const vc = mySide === 'black' ? 8 - c : c;
-                        const vx = 25 + vc * 50;
-                        const vy = 25 + vr * 50;
-                        
-                        const ind = document.createElement('div');
-                        ind.className = 'move-indicator' + (board[r][c] ? ' capture' : '');
-                        ind.style.left = vx + 'px';
-                        ind.style.top = vy + 'px';
-                        ind.onclick = (e) => {
-                            e.stopPropagation();
-                            onCellClick(r, c);
-                        };
-                        boardEl.appendChild(ind);
-                    }
-                }
+                selectedCell = { r, c };
+                renderBoard();
             }
         }
     }
 
     function executeMove(sr, sc, tr, tc, isLocal) {
-        const piece = board[sr][sc];
+        const piece  = board[sr][sc];
         const target = board[tr][tc];
         board[tr][tc] = piece;
         board[sr][sc] = '';
-        
-        let moveText = `${piece} di chuyển từ (${sr},${sc}) đến (${tr},${tc})`;
-        if (target) moveText += ` và ăn ${target}`;
-        
+
+        const pName  = PIECE_NAMES[piece]  || piece;
+        const tName  = target ? (PIECE_NAMES[target] || target) : '';
+        let moveText = `${pName}(${sr},${sc})→(${tr},${tc})`;
+        if (target) moveText += ` ăn ${tName}`;
+
         if (isLocal) {
-            sendGameMessage({ type: 'MOVE', sr, sc, tr, tc });
-            addLog('HỆ THỐNG', `Bạn đi: ${moveText}`, 'green');
+            sendGameEvent({ type: 'MOVE', sr, sc, tr, tc });
+            addLog('Bạn', moveText, 'green');
         } else {
-            addLog('HỆ THỐNG', `Đối thủ đi: ${moveText}`, 'orange');
+            addLog('Đối thủ', moveText, 'orange');
         }
 
         currentTurn = currentTurn === 'red' ? 'black' : 'red';
         renderBoard();
         updateTurnText();
 
+        // Check win
         if (target && target[1] === 'g') {
             isGameActive = false;
+            updateTurnText();
             if (isLocal) {
-                alert('Chúc mừng! Bạn đã thắng.');
-                addLog('HỆ THỐNG', 'Bạn đã chiếu tướng và thắng.', 'green');
+                alert('🏆 Chiếu tướng! Bạn đã thắng!');
+                addLog('HỆ THỐNG', 'Bạn đã thắng!', 'green');
             } else {
-                alert('Tướng của bạn đã bị ăn. Bạn thua!');
-                addLog('HỆ THỐNG', 'Tướng đã mất. Bạn đã thua.', 'red');
+                alert('💔 Tướng của bạn bị chiếu. Bạn thua!');
+                addLog('HỆ THỐNG', 'Bạn đã thua!', 'red');
             }
         }
     }
 
     function updateTurnText() {
         if (!isGameActive) {
-            turnText.innerText = "Trận đấu dừng/chờ";
-            turnText.style.color = 'black';
+            turnText.innerText = 'Trận đấu dừng / chờ';
+            turnText.style.color  = '#666';
+            turnText.style.fontWeight = 'normal';
             return;
         }
         if (currentTurn === mySide) {
-            turnText.innerText = "Lượt của bạn (" + (mySide === 'red' ? 'Đỏ' : 'Đen') + ")";
-            turnText.style.color = '#cc0000';
+            turnText.innerText = '▶ Lượt của bạn (' + (mySide === 'red' ? 'Đỏ' : 'Đen') + ')';
+            turnText.style.color  = '#cc0000';
             turnText.style.fontWeight = 'bold';
         } else {
-            turnText.innerText = "Lượt đối thủ";
-            turnText.style.color = '#000000';
+            turnText.innerText = 'Đang chờ đối thủ...';
+            turnText.style.color  = '#333';
             turnText.style.fontWeight = 'normal';
         }
     }
 
-    // --- BINDINGS ---
+    // =====================================================================
+    // LOG
+    // =====================================================================
+    function addLog(sender, message, color) {
+        const div = document.createElement('div');
+        div.style.marginBottom = '2px';
+        div.style.color = color || 'black';
+        div.innerHTML = `<b>[${sender}]</b> ${message}`;
+        logArea.appendChild(div);
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    // =====================================================================
+    // EVENT BINDINGS
+    // =====================================================================
     document.addEventListener('DOMContentLoaded', () => {
         if (btnRefreshLobby) btnRefreshLobby.addEventListener('click', fetchRooms);
-        if (btnCreateRoom) btnCreateRoom.addEventListener('click', createRoom);
-        
-        if (btnLeave) btnLeave.addEventListener('click', leaveRoom);
+        if (btnCreateRoom)   btnCreateRoom.addEventListener('click', createRoom);
+        if (btnLeave)        btnLeave.addEventListener('click', leaveRoom);
+
         if (btnResign) {
             btnResign.addEventListener('click', () => {
                 if (!isGameActive) return;
-                if(confirm('Chắc chắn đầu hàng?')) {
-                    sendGameMessage({ type: 'RESIGN' });
-                    addLog('HỆ THỐNG', 'Bạn đã đầu hàng.', 'red');
-                    isGameActive = false;
-                    updateTurnText();
-                }
+                if (!confirm('Bạn có chắc chắn muốn đầu hàng?')) return;
+                sendGameEvent({ type: 'RESIGN' });
+                addLog('HỆ THỐNG', 'Bạn đã đầu hàng.', 'red');
+                isGameActive = false;
+                updateTurnText();
             });
         }
+
         if (btnDraw) {
             btnDraw.addEventListener('click', () => {
                 if (!isGameActive) return;
-                sendGameMessage({ type: 'DRAW' });
-                addLog('HỆ THỐNG', 'Đã gửi lời mời hòa cờ.', 'blue');
+                sendGameEvent({ type: 'DRAW' });
+                addLog('HỆ THỐNG', 'Đã gửi đề nghị hòa cờ.', 'blue');
             });
         }
-        
+
         if (btnSendChat) {
-            btnSendChat.addEventListener('click', () => {
-                const msg = chatInput.value.trim();
-                if (msg) {
-                    sendGameMessage({ type: 'CHAT', message: msg });
-                    addLog('Bạn', msg, 'black');
-                    chatInput.value = '';
-                }
-            });
+            btnSendChat.addEventListener('click', sendChat);
         }
         if (chatInput) {
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') btnSendChat.click();
-            });
+            chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
         }
-        
+
+        // Listen for lobby refresh from WebSocket
         if (window.messengerStomp) {
-            window.messengerStomp.on('public', (payload) => {
+            window.messengerStomp.on('public', payload => {
                 if (payload && payload.type === 'ROOM_UPDATE') {
                     fetchRooms();
                 }
@@ -593,20 +663,24 @@
         }
     });
 
-    // Make fetchRooms global so it can be called when window opens
-    window.chessApp = {
-        fetchRooms: fetchRooms
-    };
+    function sendChat() {
+        const msg = chatInput ? chatInput.value.trim() : '';
+        if (!msg) return;
+        sendGameEvent({ type: 'CHAT', message: msg });
+        addLog('Bạn', msg, 'black');
+        chatInput.value = '';
+    }
 
-    // Auto fetch rooms when user double clicks desktop icon
-    const chessIcon = document.querySelector('.desktop-icon[data-open="chess"]');
-    if (chessIcon) {
-        chessIcon.addEventListener('click', () => {
-            fetchRooms();
-        });
-        chessIcon.addEventListener('dblclick', () => {
-            fetchRooms();
-        });
+    // =====================================================================
+    // PUBLIC API
+    // =====================================================================
+    window.chessApp = { fetchRooms };
+
+    // Auto-refresh when desktop icon is clicked/double-clicked
+    const icon = document.querySelector('.desktop-icon[data-open="chess"]');
+    if (icon) {
+        icon.addEventListener('click',   fetchRooms);
+        icon.addEventListener('dblclick', fetchRooms);
     }
 
 })();
