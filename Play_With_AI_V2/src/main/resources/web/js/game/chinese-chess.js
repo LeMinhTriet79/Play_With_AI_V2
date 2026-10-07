@@ -198,6 +198,13 @@
     function leaveRoom() {
         if (!confirm('Bạn có chắc chắn muốn rời bàn?')) return;
         sendGameMessage({ type: 'LEAVE', player: window.currentUser });
+        
+        if (roomId) {
+            fetch(API_BASE + '/api/chess/rooms/' + roomId, {
+                method: 'DELETE'
+            }).catch(e => console.log(e));
+        }
+
         gameView.style.display = 'none';
         lobbyView.style.display = 'flex';
         roomId = null;
@@ -286,7 +293,7 @@
                 const cell = document.createElement('div');
                 cell.className = 'chess-cell';
                 
-                // Add borders/river classes
+                // Add borders/river classes (visual only, based on grid r/c)
                 if (c === 0) cell.classList.add('edge-left');
                 if (c === 8) cell.classList.add('edge-right');
                 if (r === 0) cell.classList.add('edge-top');
@@ -294,17 +301,20 @@
                 if (r === 4) cell.classList.add('river-top');
                 if (r === 5) cell.classList.add('river-bottom');
                 
-                // Palace crosses
+                // Palace crosses (visual only)
                 if ((r === 0 && c === 3) || (r === 7 && c === 3)) cell.classList.add('palace-tl');
                 if ((r === 0 && c === 5) || (r === 7 && c === 5)) cell.classList.add('palace-tr');
                 if ((r === 2 && c === 3) || (r === 9 && c === 3)) cell.classList.add('palace-bl');
                 if ((r === 2 && c === 5) || (r === 9 && c === 5)) cell.classList.add('palace-br');
 
-                cell.dataset.r = r;
-                cell.dataset.c = c;
-                cell.onclick = () => onCellClick(r, c);
+                const actualR = mySide === 'black' ? 9 - r : r;
+                const actualC = mySide === 'black' ? 8 - c : c;
 
-                const piece = board[r][c];
+                cell.dataset.r = actualR;
+                cell.dataset.c = actualC;
+                cell.onclick = () => onCellClick(actualR, actualC);
+
+                const piece = board[actualR][actualC];
                 if (piece) {
                     const pEl = document.createElement('div');
                     pEl.className = 'chess-piece ' + (piece.startsWith('r') ? 'red' : 'black');
