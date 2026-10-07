@@ -177,86 +177,71 @@ window.addEventListener('DOMContentLoaded', () => {
     dynamicStyle.innerHTML = `
         /* Ép toàn bộ chữ trong chat ăn theo biến Font và Size */
         .message-content, .message-content p, .message-content ul, .message-content ol, .message-content li {
-            font-family: var(--chat-font-family) !important;
-            font-size: var(--chat-font-size) !important;
-            color: var(--chat-text-color) !important;
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
+            color: var(--chat-text-color);
         }
 
         /* ---------------------------------------------------- */
         /* THIẾT KẾ BẢNG (TABLE) CHUẨN GIAO DIỆN WIN98          */
         /* ---------------------------------------------------- */
         .message-content table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-            margin: 15px 0 !important;
-            background-color: var(--chat-bg-color) !important;
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0; /* Bỏ margin do đã bọc bởi sunken-panel */
+            background-color: transparent;
         }
         
         /* Tiêu đề Bảng: Màu Xanh Gradient, Chữ Trắng Đậm, Font Hệ Thống */
         .message-content th.title-bar {
-            background: #000080 !important;
-            background-image: linear-gradient(90deg, #000080, #1084d0) !important;
-            border: 1px solid var(--chat-border-color) !important;
-            padding: 6px 10px !important;
-            text-align: left !important;
+            background: #000080;
+            background-image: linear-gradient(90deg, #000080, #1084d0);
+            border: 1px solid var(--chat-border-color);
+            padding: 6px 10px;
+            text-align: left;
         }
         
         /* Chữ trong thanh Tiêu đề Bảng và Code Block */
         .message-content .title-bar-text {
-            font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif !important;
-            font-size: 12px !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            letter-spacing: 0 !important;
+            font-family: "Pixelated MS Sans Serif", "MS Sans Serif", sans-serif;
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: bold;
+            letter-spacing: 0;
         }
 
         /* Ô dữ liệu (Cell): Hiệu ứng lắng xuống (Sunken Border) */
         .message-content td {
-            font-family: var(--chat-font-family) !important;
-            font-size: var(--chat-font-size) !important;
-            color: var(--chat-text-color) !important;
-            padding: 8px 10px !important;
+            font-family: var(--chat-font-family);
+            font-size: var(--chat-font-size);
+            color: var(--chat-text-color);
+            padding: 8px 10px;
             /* Đường viền lõm 3D: Xám Trái/Trên - Trắng Phải/Dưới */
-            border-top: 2px solid #808080 !important;
-            border-left: 2px solid #808080 !important;
-            border-bottom: 2px solid #ffffff !important;
-            border-right: 2px solid #ffffff !important;
-            background-color: var(--chat-panel-color) !important; /* Đổi màu theo Theme */
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-bottom: 2px solid #ffffff;
+            border-right: 2px solid #ffffff;
+            background-color: var(--chat-panel-color); /* Đổi màu theo Theme */
         }
 
         /* ---------------------------------------------------- */
         /* THIẾT KẾ KHUNG MÃ NGUỒN (CODE BLOCK)                 */
         /* ---------------------------------------------------- */
-        .message-content .window {
-            background-color: var(--chat-border-color) !important;
-            margin: 15px 0 !important;
-            box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff !important;
-        }
-        
-        .message-content .window-body .sunken-panel {
-            background-color: var(--chat-bg-color) !important;
-            border: 2px solid #808080 !important;
-            border-bottom-color: #ffffff !important;
-            border-right-color: #ffffff !important;
-            padding: 10px !important;
-            overflow-x: auto !important;
-        }
-
         .message-content pre, .message-content code {
-            font-family: "Courier New", Courier, monospace !important;
-            font-size: var(--chat-font-size) !important;
-            color: var(--chat-text-color) !important;
+            font-family: "Courier New", Courier, monospace;
+            font-size: var(--chat-font-size);
+            color: var(--chat-text-color);
         }
 
         /* Inline Code: Đoạn code ngắn trong dòng chữ */
         .message-content code:not(pre code) {
-            background-color: rgba(0,0,0,0.1) !important;
-            padding: 2px 5px !important;
-            border-top: 1px solid #808080 !important;
-            border-left: 1px solid #808080 !important;
-            border-bottom: 1px solid #ffffff !important;
-            border-right: 1px solid #ffffff !important;
-            font-size: var(--chat-font-size) !important;
+            background-color: rgba(0,0,0,0.1);
+            padding: 2px 5px;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-bottom: 1px solid #ffffff;
+            border-right: 1px solid #ffffff;
+            font-size: var(--chat-font-size);
         }
     `;
     document.head.appendChild(dynamicStyle);
@@ -362,7 +347,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('userInput').addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             document.getElementById('btnSend').click();
         }
@@ -410,6 +395,8 @@ window.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             dragging = true;
             document.body.style.cursor = 'row-resize';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
         });
 
         document.addEventListener('mouseup', () => {
@@ -418,6 +405,8 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             dragging = false;
             document.body.style.cursor = '';
+            document.body.style.webkitUserSelect = '';
+            document.body.style.userSelect = '';
         });
 
         document.addEventListener('mousemove', (event) => {
@@ -451,6 +440,8 @@ window.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             draggingSidebar = true;
             document.body.style.cursor = 'col-resize';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
         });
 
         document.addEventListener('mouseup', () => {
@@ -459,6 +450,8 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             draggingSidebar = false;
             document.body.style.cursor = '';
+            document.body.style.webkitUserSelect = '';
+            document.body.style.userSelect = '';
         });
 
         document.addEventListener('mousemove', (event) => {
@@ -553,10 +546,41 @@ function normalizeChatTables() {
         return;
     }
 
-    const tables = chatArea.querySelectorAll('table');
+    const tables = chatArea.querySelectorAll('table:not(.interactive)');
     tables.forEach((table) => {
-        // Đã LƯỢC BỎ lệnh xóa style để giữ nguyên cấu trúc HTML của Java trả về
-        // Chỉ thêm class 'interactive' để tương thích 98.css
         table.classList.add('interactive');
+        if (!table.parentElement.classList.contains('sunken-panel')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'sunken-panel';
+            wrapper.style.margin = '15px 0';
+            wrapper.style.overflowX = 'auto';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+
+    const preBlocks = chatArea.querySelectorAll('pre:not(.wrapped-code)');
+    preBlocks.forEach((pre) => {
+        pre.classList.add('wrapped-code');
+        if (!pre.parentElement.classList.contains('sunken-panel')) {
+            const windowDiv = document.createElement('div');
+            windowDiv.className = 'window';
+            windowDiv.style.margin = '15px 0';
+            
+            const windowBody = document.createElement('div');
+            windowBody.className = 'window-body';
+            
+            const sunken = document.createElement('div');
+            sunken.className = 'sunken-panel';
+            sunken.style.padding = '10px';
+            sunken.style.overflowX = 'auto';
+            sunken.style.backgroundColor = 'var(--chat-bg-color)';
+            
+            pre.parentNode.insertBefore(windowDiv, pre);
+            windowDiv.appendChild(windowBody);
+            windowBody.appendChild(sunken);
+            sunken.appendChild(pre);
+            pre.style.margin = '0';
+        }
     });
 }

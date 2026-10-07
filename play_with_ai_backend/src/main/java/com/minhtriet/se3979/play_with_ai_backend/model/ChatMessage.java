@@ -15,6 +15,7 @@ public class ChatMessage {
     private String content;     // Nội dung
     private String timestamp;   // Thời gian
     private MessageType type;   // Loại tin nhắn
+    private boolean recalled;   // Đã thu hồi
 
     public enum MessageType {
         CHAT, JOIN, LEAVE, GAME_MOVE // Thêm GAME_MOVE để truyền nước cờ

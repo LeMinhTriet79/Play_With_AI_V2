@@ -246,6 +246,11 @@ body.os-shell {
     box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
 }
 
+.taskbar-button.minimized {
+    opacity: 0.7;
+    font-style: italic;
+}
+
 .start-menu {
     position: absolute;
     left: 6px;

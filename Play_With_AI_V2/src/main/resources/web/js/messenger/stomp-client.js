@@ -84,7 +84,7 @@
         stompClient.debug = null;
 
         setStatus('Connecting...');
-        stompClient.connect({}, function() {
+        stompClient.connect({ username: currentUser, login: currentUser }, function() {
             connected = true;
             setStatus('Connected');
             subscribeTopics();
@@ -109,6 +109,35 @@
             return;
         }
         stompClient.send('/app/webrtc.signal', {}, JSON.stringify(payload));
+    }
+
+    function sendRecall(payload) {
+        if (!connected || !stompClient) {
+            setStatus('Not connected');
+            return;
+        }
+        stompClient.send('/app/chat.recall', {}, JSON.stringify(payload));
+    }
+
+    function sendGameMove(payload) {
+        if (!connected || !stompClient) {
+            setStatus('Not connected');
+            return;
+        }
+        stompClient.send('/app/game.move', {}, JSON.stringify(payload));
+    }
+
+    let currentGameSub = null;
+    function subscribeGame(roomId, callback) {
+        if (!connected || !stompClient) {
+            return;
+        }
+        if (currentGameSub) {
+            currentGameSub.unsubscribe();
+        }
+        currentGameSub = stompClient.subscribe('/topic/game/' + roomId, function(message) {
+            callback(parseMessage(message));
+        });
     }
 
     function disconnect() {
@@ -143,7 +172,10 @@
         connect: connect,
         disconnect: disconnect,
         sendPrivate: sendPrivate,
+        sendRecall: sendRecall,
         sendSignal: sendSignal,
+        sendGameMove: sendGameMove,
+        subscribeGame: subscribeGame,
         on: on,
         isConnected: function() { return connected; }
     };
