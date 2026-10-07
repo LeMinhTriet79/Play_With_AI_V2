@@ -62,7 +62,7 @@
     // =====================================================================
     function fetchRooms() {
         if (!window.currentUser) return;
-        fetch(API_BASE + '/api/chess/rooms')
+        fetch(API_BASE + '/api/chess/rooms?t=' + Date.now())
             .then(r => r.json())
             .then(rooms => {
                 roomList.innerHTML = '';
@@ -99,7 +99,7 @@
 
         // Fetch online users
         if (onlineUsersList) {
-            fetch(API_BASE + '/api/users/status')
+            fetch(API_BASE + '/api/users/status?t=' + Date.now())
                 .then(r => r.json())
                 .then(users => {
                     onlineUsersList.innerHTML = '';
@@ -216,7 +216,7 @@
                 lobbyPollTimer = null;
                 return;
             }
-            fetch(API_BASE + '/api/chess/rooms/' + roomId)
+            fetch(API_BASE + '/api/chess/rooms/' + roomId + '?t=' + Date.now())
                 .then(async r => {
                     const text = await r.text();
                     if (!text) return null;
