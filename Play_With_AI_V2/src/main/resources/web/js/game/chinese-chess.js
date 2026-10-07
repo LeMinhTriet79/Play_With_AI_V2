@@ -729,7 +729,16 @@
         if (!msg) return;
         sendGameEvent({ type: 'CHAT', message: msg });
         addLog('Bạn', msg, 'black');
-        chatInput.value = '';
+        if (chatInput) chatInput.value = '';
+    }
+
+    function addLog(sender, text, color) {
+        if (!logArea) return;
+        const div = document.createElement('div');
+        div.style.marginBottom = '4px';
+        div.innerHTML = `<b style="color:${color || 'black'}">${sender}:</b> ${text}`;
+        logArea.appendChild(div);
+        logArea.scrollTop = logArea.scrollHeight;
     }
 
     // =====================================================================
