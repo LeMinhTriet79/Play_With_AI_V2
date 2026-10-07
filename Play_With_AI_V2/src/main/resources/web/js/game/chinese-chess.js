@@ -376,7 +376,7 @@
                 myScore++;
                 updateScoreDisplay();
                 updateTurnText();
-                alert(`Đối thủ ${payload.sender} đã đầu hàng! Bạn thắng!`);
+                showGameOverDialog(`Đối thủ ${payload.sender} đã đầu hàng! Bạn thắng!`);
                 break;
             }
 
@@ -394,13 +394,24 @@
                 addLog('HỆ THỐNG', '🤝 Hai bên đã đồng ý hòa!', 'green');
                 isGameActive = false;
                 updateTurnText();
-                alert('Trận đấu kết thúc: Hòa cờ!');
+                showGameOverDialog('Trận đấu kết thúc: Hòa cờ!');
+                break;
+            }
+
+            case 'REMATCH': {
+                if (fromMe) break;
+                addLog('HỆ THỐNG', `🔄 ${payload.sender} muốn chơi lại. Bàn cờ đã được khởi tạo lại!`, 'blue');
+                if (window.hideGameOverDialog) window.hideGameOverDialog();
+                const d = document.getElementById('chessGameOverDialog');
+                if (d) d.style.display = 'none';
+                initBoard();
+                isGameActive = true;
+                updateTurnText();
                 break;
             }
 
             case 'CHAT': {
-                const color = fromMe ? 'black' : '#555';
-                addLog(payload.sender, payload.message, color);
+                addLog(payload.sender, payload.message);
                 break;
             }
 
@@ -646,11 +657,13 @@
         let moveText = `${pName}(${sr},${sc})→(${tr},${tc})`;
         if (target) moveText += ` ăn ${tName}`;
 
+        const oppName = (mySide === 'red') ? playerBlackText.innerText : playerRedText.innerText;
+
         if (isLocal) {
             sendGameEvent({ type: 'MOVE', sr, sc, tr, tc });
-            addLog('Bạn', moveText, 'green');
+            addLog(window.currentUser, moveText);
         } else {
-            addLog('Đối thủ', moveText, 'orange');
+            addLog(oppName, moveText);
         }
 
         currentTurn = currentTurn === 'red' ? 'black' : 'red';
@@ -664,13 +677,13 @@
             if (isLocal) {
                 myScore++;
                 updateScoreDisplay();
-                alert('🏆 Chiếu tướng! Bạn đã thắng!');
                 addLog('HỆ THỐNG', 'Bạn đã thắng!', 'green');
+                showGameOverDialog('Chiếu tướng! Bạn đã thắng!');
             } else {
                 oppScore++;
                 updateScoreDisplay();
-                alert('💔 Tướng của bạn bị chiếu. Bạn thua!');
                 addLog('HỆ THỐNG', 'Bạn đã thua!', 'red');
+                showGameOverDialog('Tướng của bạn bị chiếu. Bạn thua!');
             }
         }
     }
@@ -713,11 +726,17 @@
     // =====================================================================
     // LOG
     // =====================================================================
-    function addLog(sender, message, color) {
+    function addLog(sender, message, forceColor) {
+        let nameColor = forceColor || '#333';
+        if (!forceColor) {
+            if (sender === window.currentUser) nameColor = '#0078d7'; // Xanh cho mình
+            else if (sender !== 'HỆ THỐNG') nameColor = '#000000'; // Đen cho địch
+            else nameColor = '#008000'; // Xanh lá cho hệ thống
+        }
+
         const div = document.createElement('div');
-        div.style.marginBottom = '2px';
-        div.style.color = color || 'black';
-        div.innerHTML = `<b>[${sender}]</b> ${message}`;
+        div.style.marginBottom = '4px';
+        div.innerHTML = `<span style="font-weight:bold; color:${nameColor}">${sender}</span>: <span style="color: ${forceColor ? forceColor : '#000'}">${message}</span>`;
         logArea.appendChild(div);
         logArea.scrollTop = logArea.scrollHeight;
     }
@@ -730,6 +749,41 @@
         if (btnCreateRoom)   btnCreateRoom.addEventListener('click', createRoom);
         if (btnLeave)        btnLeave.addEventListener('click', leaveRoom);
 
+        const btnPlayAgain = document.getElementById('btnChessPlayAgain');
+        const btnLeaveAfterGame = document.getElementById('btnChessLeaveAfterGame');
+        const btnCloseGameOver = document.getElementById('btnChessGameOverClose');
+        const gameOverDialog = document.getElementById('chessGameOverDialog');
+        const gameOverMessage = document.getElementById('chessGameOverMessage');
+
+        window.showGameOverDialog = function(msg) {
+            if (gameOverMessage) gameOverMessage.innerText = msg;
+            if (gameOverDialog) gameOverDialog.style.display = 'flex';
+        }
+
+        function hideGameOverDialog() {
+            if (gameOverDialog) gameOverDialog.style.display = 'none';
+        }
+
+        if (btnCloseGameOver) btnCloseGameOver.addEventListener('click', hideGameOverDialog);
+        
+        if (btnPlayAgain) {
+            btnPlayAgain.addEventListener('click', () => {
+                hideGameOverDialog();
+                initBoard();
+                isGameActive = true;
+                updateTurnText();
+                addLog('HỆ THỐNG', 'Bạn đã bắt đầu ván mới!', 'green');
+                sendGameEvent({ type: 'REMATCH' });
+            });
+        }
+
+        if (btnLeaveAfterGame) {
+            btnLeaveAfterGame.addEventListener('click', () => {
+                hideGameOverDialog();
+                if (btnLeave) btnLeave.click();
+            });
+        }
+
         if (btnResign) {
             btnResign.addEventListener('click', () => {
                 if (!isGameActive) return;
@@ -740,6 +794,7 @@
                 oppScore++;
                 updateScoreDisplay();
                 updateTurnText();
+                showGameOverDialog('Bạn đã đầu hàng. Bạn thua!');
             });
         }
 
