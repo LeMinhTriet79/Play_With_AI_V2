@@ -1,87 +1,19 @@
 .chess-board {
-    display: grid;
-    grid-template-columns: repeat(9, 50px);
-    grid-template-rows: repeat(10, 50px);
+    width: 450px;
+    height: 500px;
+    position: relative;
     background-color: transparent;
-    border: 1px solid #5c3a21; /* Outer border of the grid */
-    position: relative;
-    box-sizing: content-box;
+    user-select: none;
 }
 
-.chess-cell {
-    width: 50px;
-    height: 50px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Horizontal lines */
-.chess-cell::after {
-    content: '';
-    position: absolute;
-    top: 24px;
-    left: 0;
-    right: 0;
-    border-top: 1px solid #5c3a21;
-    z-index: 1;
-}
-
-/* Vertical lines */
-.chess-cell::before {
-    content: '';
+.chess-svg {
     position: absolute;
     top: 0;
-    bottom: 0;
-    left: 24px;
-    border-left: 1px solid #5c3a21;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1;
-}
-
-/* Fix edges so lines don't bleed out */
-.chess-cell.edge-left::after { left: 24px; }
-.chess-cell.edge-right::after { right: 24px; }
-.chess-cell.edge-top::before { top: 24px; }
-.chess-cell.edge-bottom::before { bottom: 24px; }
-
-/* River */
-.chess-cell.river-top::before { bottom: 24px; }
-.chess-cell.river-bottom::before { top: 24px; }
-
-/* Palace lines (X) */
-.chess-cell.palace-tl::after {
-    content: '';
-    position: absolute;
-    width: 141px;
-    height: 1px;
-    background: #5c3a21;
-    transform: rotate(45deg);
-    top: 24px;
-    left: 24px;
-    z-index: 1;
-    transform-origin: 0 0;
-}
-.chess-cell.palace-tr::after {
-    content: '';
-    position: absolute;
-    width: 141px;
-    height: 1px;
-    background: #5c3a21;
-    transform: rotate(-45deg);
-    top: 24px;
-    right: 24px;
-    z-index: 1;
-    transform-origin: 100% 0;
-}
-/* bl and br are handled by the full length of tl and tr */
-.chess-cell.palace-bl::after { display: none; }
-.chess-cell.palace-br::after { display: none; }
-
-/* Cannon/Pawn cross marks */
-.chess-cell.mark::after {
-    content: '';
-    /* Not strictly implementing all small corner marks to save time, but usually done with complex borders */
+    pointer-events: none;
 }
 
 /* PIECES */
@@ -100,6 +32,8 @@
     user-select: none;
     position: absolute;
     box-shadow: 2px 3px 5px rgba(0,0,0,0.5);
+    transform: translate(-50%, -50%);
+    transition: left 0.2s, top 0.2s;
 }
 
 .chess-piece.red {
@@ -116,10 +50,10 @@
 
 .chess-piece.selected {
     box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.8), 2px 3px 5px rgba(0,0,0,0.5);
-    transform: translateY(-2px);
+    transform: translate(-50%, -54%);
 }
 
-.chess-cell.valid-move .move-indicator {
+.move-indicator {
     position: absolute;
     width: 14px;
     height: 14px;
@@ -127,18 +61,26 @@
     background-color: rgba(0, 200, 0, 0.8);
     z-index: 5;
     cursor: pointer;
+    transform: translate(-50%, -50%);
 }
 
-.chess-cell.valid-capture .move-indicator {
-    position: absolute;
+.move-indicator.capture {
     width: 48px;
     height: 48px;
-    border-radius: 50%;
     border: 4px solid rgba(255, 0, 0, 0.7);
     background-color: transparent;
     z-index: 11;
+}
+
+/* Clickable intersection areas */
+.intersection-click {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    z-index: 2;
     cursor: pointer;
-    box-sizing: border-box;
+    background: transparent;
 }
 
 /* Scrollbar for lobby list */

@@ -1,5 +1,6 @@
 package com.minhtriet.se3979.play_with_ai_backend.controller;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -11,6 +12,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/chess")
 @CrossOrigin(origins = "*")
 public class ChessRoomController {
+
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public ChessRoomController(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
+
 
     public static class RoomInfo {
         private String roomId;
@@ -60,6 +68,7 @@ public class ChessRoomController {
         
         RoomInfo room = new RoomInfo(roomId, roomName, player, side);
         rooms.put(roomId, room);
+        messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
         return room;
     }
 
@@ -76,6 +85,7 @@ public class ChessRoomController {
             if (room.getPlayerRed() != null && room.getPlayerBlack() != null) {
                 room.setStatus("PLAYING");
             }
+            messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
         }
         return room;
     }
@@ -83,5 +93,6 @@ public class ChessRoomController {
     @DeleteMapping("/rooms/{roomId}")
     public void deleteRoom(@PathVariable String roomId) {
         rooms.remove(roomId);
+        messagingTemplate.convertAndSend("/topic/public", Map.of("type", "ROOM_UPDATE"));
     }
 }

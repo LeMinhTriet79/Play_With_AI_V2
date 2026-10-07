@@ -288,41 +288,61 @@
     function renderBoard() {
         if (!boardEl) return;
         boardEl.innerHTML = '';
+        
+        let svgStr = `<svg class="chess-svg" width="450" height="500" xmlns="http://www.w3.org/2000/svg">`;
+        svgStr += `<rect x="20" y="20" width="410" height="460" fill="none" stroke="#5c3a21" stroke-width="3" />`;
+        svgStr += `<rect x="25" y="25" width="400" height="450" fill="none" stroke="#5c3a21" stroke-width="2" />`;
+        for (let i = 1; i <= 8; i++) svgStr += `<line x1="25" y1="${25 + i * 50}" x2="425" y2="${25 + i * 50}" stroke="#5c3a21" stroke-width="1.5" />`;
+        for (let i = 1; i <= 7; i++) {
+            svgStr += `<line x1="${25 + i * 50}" y1="25" x2="${25 + i * 50}" y2="225" stroke="#5c3a21" stroke-width="1.5" />`;
+            svgStr += `<line x1="${25 + i * 50}" y1="275" x2="${25 + i * 50}" y2="475" stroke="#5c3a21" stroke-width="1.5" />`;
+        }
+        svgStr += `<line x1="175" y1="25" x2="275" y2="125" stroke="#5c3a21" stroke-width="1.5" />`;
+        svgStr += `<line x1="275" y1="25" x2="175" y2="125" stroke="#5c3a21" stroke-width="1.5" />`;
+        svgStr += `<line x1="175" y1="475" x2="275" y2="375" stroke="#5c3a21" stroke-width="1.5" />`;
+        svgStr += `<line x1="275" y1="475" x2="175" y2="375" stroke="#5c3a21" stroke-width="1.5" />`;
+        const crosses = [[2,1],[2,7],[3,0],[3,2],[3,4],[3,6],[3,8],[7,1],[7,7],[6,0],[6,2],[6,4],[6,6],[6,8]];
+        crosses.forEach(pt => {
+            const cx = 25 + pt[1]*50, cy = 25 + pt[0]*50;
+            if (pt[1] > 0) {
+                svgStr += `<polyline points="${cx-10},${cy-5} ${cx-5},${cy-5} ${cx-5},${cy-10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+                svgStr += `<polyline points="${cx-10},${cy+5} ${cx-5},${cy+5} ${cx-5},${cy+10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+            }
+            if (pt[1] < 8) {
+                svgStr += `<polyline points="${cx+10},${cy-5} ${cx+5},${cy-5} ${cx+5},${cy-10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+                svgStr += `<polyline points="${cx+10},${cy+5} ${cx+5},${cy+5} ${cx+5},${cy+10}" fill="none" stroke="#5c3a21" stroke-width="1.5"/>`;
+            }
+        });
+        svgStr += `</svg>`;
+        boardEl.innerHTML = svgStr;
+        
         for (let r = 0; r < 10; r++) {
             for (let c = 0; c < 9; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'chess-cell';
-                
-                // Add borders/river classes (visual only, based on grid r/c)
-                if (c === 0) cell.classList.add('edge-left');
-                if (c === 8) cell.classList.add('edge-right');
-                if (r === 0) cell.classList.add('edge-top');
-                if (r === 9) cell.classList.add('edge-bottom');
-                if (r === 4) cell.classList.add('river-top');
-                if (r === 5) cell.classList.add('river-bottom');
-                
-                // Palace crosses (visual only)
-                if ((r === 0 && c === 3) || (r === 7 && c === 3)) cell.classList.add('palace-tl');
-                if ((r === 0 && c === 5) || (r === 7 && c === 5)) cell.classList.add('palace-tr');
-                if ((r === 2 && c === 3) || (r === 9 && c === 3)) cell.classList.add('palace-bl');
-                if ((r === 2 && c === 5) || (r === 9 && c === 5)) cell.classList.add('palace-br');
-
                 const actualR = mySide === 'black' ? 9 - r : r;
                 const actualC = mySide === 'black' ? 8 - c : c;
+                const vx = 25 + c * 50;
+                const vy = 25 + r * 50;
 
-                cell.dataset.r = actualR;
-                cell.dataset.c = actualC;
-                cell.onclick = () => onCellClick(actualR, actualC);
+                const clickArea = document.createElement('div');
+                clickArea.className = 'intersection-click';
+                clickArea.style.left = vx + 'px';
+                clickArea.style.top = vy + 'px';
+                clickArea.dataset.r = actualR;
+                clickArea.dataset.c = actualC;
+                clickArea.onclick = () => onCellClick(actualR, actualC);
+                boardEl.appendChild(clickArea);
 
                 const piece = board[actualR][actualC];
                 if (piece) {
                     const pEl = document.createElement('div');
                     pEl.className = 'chess-piece ' + (piece.startsWith('r') ? 'red' : 'black');
                     pEl.innerText = PIECE_NAMES[piece];
-                    cell.appendChild(pEl);
+                    pEl.style.left = vx + 'px';
+                    pEl.style.top = vy + 'px';
+                    pEl.id = `piece-${actualR}-${actualC}`;
+                    pEl.onclick = () => onCellClick(actualR, actualC);
+                    boardEl.appendChild(pEl);
                 }
-
-                boardEl.appendChild(cell);
             }
         }
     }
@@ -444,33 +464,30 @@
     }
 
     function updateHighlight() {
-        document.querySelectorAll('.chess-cell').forEach(c => {
-            if (c.firstElementChild && c.firstElementChild.classList.contains('chess-piece')) {
-                c.firstElementChild.classList.remove('selected');
-            }
-            const ind = c.querySelector('.move-indicator');
-            if (ind) ind.remove();
-            c.classList.remove('valid-move', 'valid-capture');
-        });
+        document.querySelectorAll('.chess-piece.selected').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.move-indicator').forEach(el => el.remove());
         
         if (selectedCell) {
-            const index = selectedCell.r * 9 + selectedCell.c;
-            const cell = boardEl.children[index];
-            if (cell && cell.firstElementChild) {
-                cell.firstElementChild.classList.add('selected');
-            }
+            const pEl = document.getElementById(`piece-${selectedCell.r}-${selectedCell.c}`);
+            if (pEl) pEl.classList.add('selected');
+
             for (let r = 0; r < 10; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (isValidMove(selectedCell.r, selectedCell.c, r, c)) {
-                        const targetCell = boardEl.children[r * 9 + c];
+                        const vr = mySide === 'black' ? 9 - r : r;
+                        const vc = mySide === 'black' ? 8 - c : c;
+                        const vx = 25 + vc * 50;
+                        const vy = 25 + vr * 50;
+                        
                         const ind = document.createElement('div');
-                        ind.className = 'move-indicator';
-                        if (board[r][c]) {
-                            targetCell.classList.add('valid-capture');
-                        } else {
-                            targetCell.classList.add('valid-move');
-                        }
-                        targetCell.appendChild(ind);
+                        ind.className = 'move-indicator' + (board[r][c] ? ' capture' : '');
+                        ind.style.left = vx + 'px';
+                        ind.style.top = vy + 'px';
+                        ind.onclick = (e) => {
+                            e.stopPropagation();
+                            onCellClick(r, c);
+                        };
+                        boardEl.appendChild(ind);
                     }
                 }
             }
@@ -564,6 +581,14 @@
         if (chatInput) {
             chatInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') btnSendChat.click();
+            });
+        }
+        
+        if (window.messengerStomp) {
+            window.messengerStomp.on('public', (payload) => {
+                if (payload && payload.type === 'ROOM_UPDATE') {
+                    fetchRooms();
+                }
             });
         }
     });
