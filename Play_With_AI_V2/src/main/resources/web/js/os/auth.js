@@ -185,6 +185,17 @@
         if (btnRegister) {
             btnRegister.addEventListener('click', handleRegister);
         }
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', function() {
+                if (window.chessApp && window.chessApp.leaveRoomIfAny) {
+                    window.chessApp.leaveRoomIfAny(); // Assuming we add this helper
+                }
+                window.currentUser = null;
+                showTab('login');
+                setLoginVisible(true);
+            });
+        }
         const dialogClose = document.querySelector('[data-dialog-close]');
         const dialogOk = document.getElementById('dialog-ok');
         if (dialogClose) {

@@ -651,6 +651,7 @@
     }
 
     function updateTurnText() {
+        if (!turnText) return;
         if (!isGameActive) {
             turnText.innerText = 'Trận đấu dừng / chờ';
             turnText.style.color  = '#666';
@@ -744,7 +745,18 @@
     // =====================================================================
     // PUBLIC API
     // =====================================================================
-    window.chessApp = { fetchRooms };
+    window.chessApp = { 
+        fetchRooms,
+        leaveRoomIfAny: () => {
+            if (isGameActive && roomId) {
+                sendGameEvent({ type: 'LEAVE', player: window.currentUser, sender: window.currentUser });
+                fetch(API_BASE + '/api/chess/rooms/' + roomId + '?player=' + encodeURIComponent(window.currentUser), {
+                    method: 'DELETE'
+                }).catch(() => {});
+                resetToLobby();
+            }
+        }
+    };
 
     // Auto-refresh when desktop icon is clicked/double-clicked
     const icon = document.querySelector('.desktop-icon[data-open="chess"]');
