@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/os.css">
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="css/messenger.css">
+    <link rel="stylesheet" href="css/chess.css">
 </head>
 <body class="os-shell">
 <div id="login-overlay" class="login-overlay"></div>
@@ -77,6 +78,10 @@
         <button class="desktop-icon" type="button" data-open="messenger">
             <img src="icons/mailbox_world-2.png" alt="Messenger">
             <span class="icon-label">Messenger</span>
+        </button>
+        <button class="desktop-icon" type="button" data-open="chess">
+            <img src="icons/games-4.png" alt="Cờ Tướng" onerror="this.src='icons/themes-4.png'">
+            <span class="icon-label">Cờ Tướng</span>
         </button>
     </div>
 
@@ -340,6 +345,116 @@
                 <p class="status-bar-field" id="callStatus">Idle</p>
             </div>
         </div>
+
+        <!-- Chinese Chess Window -->
+        <div id="window-chess" class="window os-window app-window desktop-window" data-window="chess" aria-label="Cờ Tướng" hidden style="width: 850px; height: 600px;">
+            <div class="title-bar">
+                <div class="title-bar-text">Cờ Tướng (Xiangqi) - Online</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize" data-window-control="minimize"></button>
+                    <button aria-label="Maximize" data-window-control="maximize"></button>
+                    <button aria-label="Close" data-window-control="close"></button>
+                </div>
+            </div>
+            <div class="window-body" style="height: calc(100% - 30px); margin: 0; padding: 0; display: flex; flex-direction: column;">
+                
+                <div id="chess-app-wrapper" style="flex: 1; background: #9bc4e2; display: flex; flex-direction: column;">
+                    <!-- LOBBY VIEW -->
+                    <div id="chess-lobby" style="height: 100%; display: flex; flex-direction: column;">
+                        <div style="display: flex; padding: 10px; gap: 10px; align-items: center;">
+                            <button id="btnChessCreateRoom" style="padding: 3px 20px;">mở bàn mới</button>
+                            <select id="chessLobbyFilter" style="padding: 2px;">
+                                <option>#... mọi nơi</option>
+                            </select>
+                            <button id="btnChessRefreshLobby" style="padding: 3px 15px;">các bàn chơi</button>
+                        </div>
+                        <div style="display: flex; flex: 1; padding: 0 10px 10px 10px; gap: 10px; overflow: hidden;">
+                            <!-- Left: Room List -->
+                            <div class="sunken-panel" style="flex: 3; background: white; overflow-y: auto;">
+                                <table class="interactive" style="width: 100%; text-align: left; font-size: 13px;">
+                                    <tbody id="chessRoomList">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Right: User List -->
+                            <div class="sunken-panel" style="flex: 1; background: white; overflow-y: auto; padding: 10px; font-size: 12px; line-height: 1.8;">
+                                <div id="chessOnlineUsers">
+                                    <!-- Dynamic users -->
+                                    <span style="color:#666;">Đang tải danh sách...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GAME VIEW -->
+                    <div id="chess-game-area" style="display: none; height: 100%; padding: 10px; box-sizing: border-box; gap: 15px;">
+                        
+                        <!-- LEFT: BOARD -->
+                        <div style="flex: 0 0 540px; background: #e2a65a; border: 2px solid #5c3a21; position: relative; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                            <div class="chess-board" id="chessBoard"></div>
+                            <div id="chessWaitingOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #e31818; color: white; padding: 10px 40px; font-weight: bold; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 100;">
+                                đang chờ đối thủ
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: SIDEBAR -->
+                        <div class="chess-sidebar" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                            
+                            <!-- Room Header -->
+                            <div style="font-weight: bold; font-size: 14px; color: black;">
+                                <span id="chessGameRoomName">bàn #...</span> <span style="margin-left: 10px; font-weight: normal;">10p</span>
+                            </div>
+
+                            <!-- Player Info -->
+                            <div style="display: flex; gap: 10px;">
+                                <div style="flex: 1; display: flex; flex-direction: column;">
+                                    <div style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                        <div style="width: 8px; height: 8px; background: red;"></div> #1
+                                    </div>
+                                    <div class="sunken-panel" id="chessPlayerRed" style="background: white; padding: 8px 5px; font-size: 14px; font-weight: bold; min-height: 18px; margin-top: 2px;">-</div>
+                                    <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
+                                </div>
+                                <div style="flex: 1; display: flex; flex-direction: column;">
+                                    <div style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                        <div style="width: 8px; height: 8px; background: #888;"></div> #2
+                                    </div>
+                                    <div class="sunken-panel" id="chessPlayerBlack" style="background: rgba(255,255,255,0.5); padding: 8px 5px; font-size: 14px; color: #666; min-height: 18px; margin-top: 2px;">-</div>
+                                    <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 5px; justify-content: space-between;">
+                                <button id="btnChessDraw" style="flex: 1;">một trận hòa</button>
+                                <button id="btnChessResign" style="flex: 1;">bỏ cuộc</button>
+                                <button id="btnChessLeave" style="flex: 1;">rời bàn</button>
+                            </div>
+
+                            <!-- Chat & Logs -->
+                            <div style="flex: 1; display: flex; flex-direction: column; background: #9bc4e2;">
+                                <menu role="tablist" style="margin: 0;">
+                                    <li role="tab" aria-selected="true"><a href="#tabs">nói</a></li>
+                                    <li role="tab"><a href="#tabs">nước cờ</a></li>
+                                    <li role="tab"><a href="#tabs">ai trong</a></li>
+                                    <li role="tab"><a href="#tabs">luật</a></li>
+                                </menu>
+                                <div class="window-body" style="flex: 1; margin: 0; padding: 5px; background: #c0c0c0; border-left: 1px solid white; border-right: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column;">
+                                    <div class="sunken-panel" id="chessLogArea" style="flex: 1; overflow-y: auto; padding: 5px; font-size: 12px; background: white; margin-bottom: 5px;">
+                                        <!-- chat logs here -->
+                                    </div>
+                                    <div class="field-row" style="display: flex; gap: 5px;">
+                                        <button style="min-width: 30px;">...</button>
+                                        <input type="text" id="chessChatInput" style="flex: 1;" autocomplete="off">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="taskbar" class="taskbar">
@@ -417,5 +532,6 @@
 <script src="js/messenger/stomp-client.js"></script>
 <script src="js/messenger/webrtc.js"></script>
 <script src="js/messenger/messenger.js"></script>
+<script src="js/game/chinese-chess.js"></script>
 </body>
 </html>
