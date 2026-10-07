@@ -20,7 +20,7 @@ public class GameController {
         String roomId = (String) payload.get("roomId");
         if (roomId != null) {
             // Broadcast the move directly to all clients in the room
-            messagingTemplate.convertAndSend("/topic/game/" + roomId, payload);
+            messagingTemplate.convertAndSend("/topic/game/" + roomId, (Object) payload);
         }
     }
 }
