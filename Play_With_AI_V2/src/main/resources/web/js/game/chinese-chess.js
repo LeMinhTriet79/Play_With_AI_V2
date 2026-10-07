@@ -142,8 +142,17 @@
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ player: window.currentUser })
         })
-        .then(r => r.json())
+        .then(async r => {
+            const text = await r.text();
+            if (!text) return null;
+            return JSON.parse(text);
+        })
         .then(updatedRoom => {
+            if (!updatedRoom) {
+                alert('Phòng không tồn tại hoặc đã bị xóa!');
+                fetchRooms();
+                return;
+            }
             const side = updatedRoom.playerRed === window.currentUser ? 'red' : 'black';
             enterGameRoom(updatedRoom, side);
         })
@@ -195,30 +204,40 @@
 
         // Fallback polling: every 3s fetch room state from HTTP while waiting
         if (!isGameActive) {
-            lobbyPollTimer = setInterval(() => {
-                if (isGameActive || !roomId) {
-                    clearInterval(lobbyPollTimer);
-                    lobbyPollTimer = null;
-                    return;
-                }
-                fetch(API_BASE + '/api/chess/rooms/' + roomId)
-                    .then(r => r.json())
-                    .then(updatedRoom => {
-                        if (!updatedRoom) return;
-                        if (updatedRoom.playerRed)   playerRedText.innerText   = updatedRoom.playerRed;
-                        if (updatedRoom.playerBlack) playerBlackText.innerText = updatedRoom.playerBlack;
-                        if (updatedRoom.playerRed && updatedRoom.playerBlack) {
-                            isGameActive = true;
-                            waitingOverlay.style.display = 'none';
-                            addLog('HỆ THỐNG', '✅ Đối thủ đã vào! Trận đấu bắt đầu!', 'green');
-                            updateTurnText();
-                            clearInterval(lobbyPollTimer);
-                            lobbyPollTimer = null;
-                        }
-                    })
-                    .catch(() => {});
-            }, 3000);
+            startLobbyPoll();
         }
+    }
+
+    function startLobbyPoll() {
+        if (lobbyPollTimer) return;
+        lobbyPollTimer = setInterval(() => {
+            if (isGameActive || !roomId) {
+                clearInterval(lobbyPollTimer);
+                lobbyPollTimer = null;
+                return;
+            }
+            fetch(API_BASE + '/api/chess/rooms/' + roomId)
+                .then(async r => {
+                    const text = await r.text();
+                    if (!text) return null;
+                    return JSON.parse(text);
+                })
+                .then(updatedRoom => {
+                    if (!updatedRoom) return;
+                    if (updatedRoom.playerRed)   playerRedText.innerText   = updatedRoom.playerRed;
+                    if (updatedRoom.playerBlack) playerBlackText.innerText = updatedRoom.playerBlack;
+                    if (updatedRoom.playerRed && updatedRoom.playerBlack) {
+                        isGameActive = true;
+                        initBoard(); // Ensure fresh board
+                        waitingOverlay.style.display = 'none';
+                        addLog('HỆ THỐNG', '✅ Đối thủ đã vào! Trận đấu bắt đầu!', 'green');
+                        updateTurnText();
+                        clearInterval(lobbyPollTimer);
+                        lobbyPollTimer = null;
+                    }
+                })
+                .catch(() => {});
+        }, 3000);
     }
 
     function leaveRoom() {
@@ -278,6 +297,7 @@
                 playerBlackText.innerText = blackPlayer;
                 if (redPlayer !== '-' && blackPlayer !== '-') {
                     isGameActive = true;
+                    initBoard(); // Reset board in case of reconnect
                     waitingOverlay.style.display = 'none';
                     addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
                     updateTurnText();
@@ -290,6 +310,11 @@
                 // Update opponent's name
                 if (payload.side === 'red')   playerRedText.innerText   = payload.sender;
                 if (payload.side === 'black')  playerBlackText.innerText = payload.sender;
+                
+                // robust check
+                if (payload.playerRed) playerRedText.innerText = payload.playerRed;
+                if (payload.playerBlack) playerBlackText.innerText = payload.playerBlack;
+
                 addLog('HỆ THỐNG', `${payload.sender} đã tham gia trận đấu.`, 'blue');
 
                 // Check if both seats are filled
@@ -297,6 +322,7 @@
                 const black = playerBlackText.innerText;
                 if (red && red !== '-' && black && black !== '-') {
                     isGameActive = true;
+                    initBoard(); // Reset board in case of reconnect/new player
                     waitingOverlay.style.display = 'none';
                     addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
                     updateTurnText();
@@ -313,6 +339,8 @@
                 if (payload.sender === playerBlackText.innerText) playerBlackText.innerText = '-';
                 waitingOverlay.style.display = 'block';
                 updateTurnText();
+                
+                startLobbyPoll(); // Resume polling for new player
                 break;
             }
 
