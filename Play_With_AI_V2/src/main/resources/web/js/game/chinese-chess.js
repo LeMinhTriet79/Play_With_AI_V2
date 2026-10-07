@@ -123,7 +123,11 @@
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ player: window.currentUser, roomName: 'Bàn của ' + window.currentUser, side: 'red' })
         })
-        .then(r => r.json())
+        .then(async r => {
+            const data = await r.json();
+            if (!r.ok) { alert(data.message || 'Lỗi tạo phòng!'); throw new Error('Create room failed'); }
+            return data;
+        })
         .then(room => enterGameRoom(room, 'red'))
         .catch(e => console.error(e));
     }
@@ -145,7 +149,9 @@
         .then(async r => {
             const text = await r.text();
             if (!text) return null;
-            return JSON.parse(text);
+            const data = JSON.parse(text);
+            if (!r.ok) { alert(data.message || 'Lỗi tham gia phòng!'); throw new Error('Join room failed'); }
+            return data;
         })
         .then(updatedRoom => {
             if (!updatedRoom) {
@@ -298,7 +304,11 @@
                 if (redPlayer !== '-' && blackPlayer !== '-') {
                     isGameActive = true;
                     initBoard(); // Reset board in case of reconnect
-                    waitingOverlay.style.display = 'none';
+                    
+                    waitingOverlay.innerText = 'Đối thủ đã vào bàn!';
+                    waitingOverlay.style.background = 'green';
+                    setTimeout(() => { waitingOverlay.style.display = 'none'; }, 2000);
+                    
                     addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
                     updateTurnText();
                 }
@@ -309,7 +319,7 @@
                 if (fromMe) break; // Don't process your own JOIN
                 // Update opponent's name
                 if (payload.side === 'red')   playerRedText.innerText   = payload.sender;
-                if (payload.side === 'black')  playerBlackText.innerText = payload.sender;
+                if (payload.side === 'black') playerBlackText.innerText = payload.sender;
                 
                 // robust check
                 if (payload.playerRed) playerRedText.innerText = payload.playerRed;
@@ -323,7 +333,11 @@
                 if (red && red !== '-' && black && black !== '-') {
                     isGameActive = true;
                     initBoard(); // Reset board in case of reconnect/new player
-                    waitingOverlay.style.display = 'none';
+                    
+                    waitingOverlay.innerText = 'Đối thủ đã vào bàn!';
+                    waitingOverlay.style.background = 'green';
+                    setTimeout(() => { waitingOverlay.style.display = 'none'; }, 2000);
+                    
                     addLog('HỆ THỐNG', '✅ Trận đấu bắt đầu!', 'green');
                     updateTurnText();
                 }
@@ -337,9 +351,12 @@
                 // Clear the leaver's seat
                 if (payload.sender === playerRedText.innerText)   playerRedText.innerText   = '-';
                 if (payload.sender === playerBlackText.innerText) playerBlackText.innerText = '-';
-                waitingOverlay.style.display = 'block';
-                updateTurnText();
                 
+                waitingOverlay.innerText = 'đang chờ đối thủ';
+                waitingOverlay.style.background = '#e31818';
+                waitingOverlay.style.display = 'block';
+                
+                updateTurnText();
                 startLobbyPoll(); // Resume polling for new player
                 break;
             }
@@ -354,6 +371,8 @@
                 if (fromMe) break;
                 addLog('HỆ THỐNG', `🏳️ ${payload.sender} đã đầu hàng. Bạn đã thắng!`, 'green');
                 isGameActive = false;
+                myScore++;
+                updateScoreDisplay();
                 updateTurnText();
                 alert(`Đối thủ ${payload.sender} đã đầu hàng! Bạn thắng!`);
                 break;
@@ -641,14 +660,22 @@
             isGameActive = false;
             updateTurnText();
             if (isLocal) {
+                myScore++;
+                updateScoreDisplay();
                 alert('🏆 Chiếu tướng! Bạn đã thắng!');
                 addLog('HỆ THỐNG', 'Bạn đã thắng!', 'green');
             } else {
+                oppScore++;
+                updateScoreDisplay();
                 alert('💔 Tướng của bạn bị chiếu. Bạn thua!');
                 addLog('HỆ THỐNG', 'Bạn đã thua!', 'red');
             }
         }
     }
+
+    // Scores
+    let myScore = 0;
+    let oppScore = 0;
 
     function updateTurnText() {
         if (!turnText) return;
@@ -666,6 +693,18 @@
             turnText.innerText = 'Đang chờ đối thủ...';
             turnText.style.color  = '#333';
             turnText.style.fontWeight = 'normal';
+        }
+    }
+    
+    function updateScoreDisplay() {
+        // Find the elements that hold 0:00
+        const scoreDivs = document.querySelectorAll('#chessPlayerRed').length ? 
+            document.getElementById('chessPlayerRed').parentElement.nextElementSibling.querySelectorAll('span') : [];
+        if (scoreDivs.length >= 2) {
+            // Assuming left is Red, right is Black based on UI
+            const mySideIsRed = (mySide === 'red');
+            scoreDivs[0].innerText = 'Thắng: ' + (mySideIsRed ? myScore : oppScore);
+            scoreDivs[1].innerText = 'Thắng: ' + (mySideIsRed ? oppScore : myScore);
         }
     }
 
@@ -696,6 +735,8 @@
                 sendGameEvent({ type: 'RESIGN' });
                 addLog('HỆ THỐNG', 'Bạn đã đầu hàng.', 'red');
                 isGameActive = false;
+                oppScore++;
+                updateScoreDisplay();
                 updateTurnText();
             });
         }

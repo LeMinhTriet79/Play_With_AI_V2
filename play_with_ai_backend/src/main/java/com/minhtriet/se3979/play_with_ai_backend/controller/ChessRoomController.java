@@ -66,8 +66,13 @@ public class ChessRoomController {
 
     @PostMapping("/rooms")
     public RoomInfo createRoom(@RequestBody Map<String, String> payload) {
-        String roomId = UUID.randomUUID().toString().substring(0, 6);
         String player = payload.get("player");
+        for (RoomInfo r : rooms.values()) {
+            if (player.equals(r.getPlayerRed()) || player.equals(r.getPlayerBlack())) {
+                throw new IllegalArgumentException("Bạn đang ở trong bàn #" + r.getRoomId() + ". Vui lòng rời bàn đó trước!");
+            }
+        }
+        String roomId = UUID.randomUUID().toString().substring(0, 6);
         String roomName = payload.getOrDefault("roomName", "Bàn của " + player);
         String side = payload.getOrDefault("side", "red");
 
@@ -86,9 +91,16 @@ public class ChessRoomController {
         }
         String player = payload.get("player");
 
-        // Don't re-add if already in the room
+        // Don't re-add if already in THIS room
         if (player.equals(room.getPlayerRed()) || player.equals(room.getPlayerBlack())) {
             return room;
+        }
+        
+        // Prevent joining if already in ANOTHER room
+        for (RoomInfo r : rooms.values()) {
+            if (player.equals(r.getPlayerRed()) || player.equals(r.getPlayerBlack())) {
+                throw new IllegalArgumentException("Bạn đang ở trong bàn #" + r.getRoomId() + ". Vui lòng rời bàn đó trước!");
+            }
         }
 
         if (room.getPlayerRed() == null) {
