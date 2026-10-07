@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,527 +12,568 @@
     <link rel="stylesheet" href="css/messenger.css">
     <link rel="stylesheet" href="css/chess.css">
 </head>
+
 <body class="os-shell">
-<div id="login-overlay" class="login-overlay"></div>
-<div id="login-modal" class="window login-window" role="dialog" aria-labelledby="login-title">
-    <div class="title-bar">
-        <div class="title-bar-text" id="login-title">Play With AI - Đăng nhập</div>
-        <div class="title-bar-controls">
-            <button aria-label="Close" data-window-control="close"></button>
-        </div>
-    </div>
-    <div class="window-body">
-        <menu role="tablist" aria-label="Login tabs">
-            <li role="tab" aria-selected="true" id="tab-login"><a href="#panel-login">Đăng nhập</a></li>
-            <li role="tab" aria-selected="false" id="tab-register"><a href="#panel-register">Đăng ký</a></li>
-        </menu>
-        <div class="login-panels">
-            <article class="tabpanel-shell" role="tabpanel" id="panel-login" aria-labelledby="tab-login">
-                <div class="login-form">
-                    <div class="field-row-stacked">
-                        <label for="loginUsername">Username</label>
-                        <input id="loginUsername" type="text" autocomplete="username" maxlength="10">
-                    </div>
-                    <div class="field-row-stacked">
-                        <label for="loginPassword">Password</label>
-                        <input id="loginPassword" type="password" autocomplete="current-password" maxlength="10">
-                    </div>
-                    <div class="field-row">
-                        <button id="btnLogin" class="default">Đăng nhập</button>
-                        <span id="loginStatus" class="status-text"></span>
-                    </div>
-                </div>
-            </article>
-            <article class="tabpanel-shell" role="tabpanel" id="panel-register" aria-labelledby="tab-register" hidden>
-                <div class="login-form">
-                    <div class="field-row-stacked">
-                        <label for="registerUsername">Username</label>
-                        <input id="registerUsername" type="text" autocomplete="username" maxlength="10">
-                    </div>
-                    <div class="field-row-stacked">
-                        <label for="registerPassword">Password</label>
-                        <input id="registerPassword" type="password" autocomplete="new-password" maxlength="10">
-                    </div>
-                    <div class="field-row-stacked">
-                        <label for="registerConfirm">Confirm password</label>
-                        <input id="registerConfirm" type="password" autocomplete="new-password" maxlength="10">
-                    </div>
-                    <div class="field-row">
-                        <button id="btnRegister" class="default">Đăng ký</button>
-                        <span id="registerStatus" class="status-text"></span>
-                    </div>
-                </div>
-            </article>
-        </div>
-    </div>
-    <div class="status-bar">
-        <p class="status-bar-field" id="loginFooter">Vui lòng đăng nhập để vào Desktop.</p>
-    </div>
-</div>
-
-<div id="desktop">
-    <div id="desktop-icons" class="desktop-icons">
-        <button class="desktop-icon" type="button" data-open="ai">
-            <img src="icons/themes-4.png" alt="Play With AI">
-            <span class="icon-label">Play With AI</span>
-        </button>
-        <button class="desktop-icon" type="button" data-open="messenger">
-            <img src="icons/mailbox_world-2.png" alt="Messenger">
-            <span class="icon-label">Messenger</span>
-        </button>
-        <button class="desktop-icon" type="button" data-open="chess">
-            <img src="icons/games-4.png" alt="Cờ Tướng" onerror="this.src='icons/themes-4.png'">
-            <span class="icon-label">Cờ Tướng</span>
-        </button>
-    </div>
-
-    <div id="window-layer" class="window-layer">
-        <div id="window-ai" class="window os-window app-window desktop-window" data-window="ai" aria-label="Play With AI" hidden>
-            <div class="title-bar">
-                <div class="title-bar-text">Play With AI - Gemini (Windows 98)</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimize" data-window-control="minimize"></button>
-                    <button aria-label="Maximize" data-window-control="maximize"></button>
-                    <button aria-label="Close" data-window-control="close"></button>
-                </div>
+    <div id="login-overlay" class="login-overlay"></div>
+    <div id="login-modal" class="window login-window" role="dialog" aria-labelledby="login-title">
+        <div class="title-bar">
+            <div class="title-bar-text" id="login-title">Play With AI - Đăng nhập</div>
+            <div class="title-bar-controls">
+                <button aria-label="Close" data-window-control="close"></button>
             </div>
+        </div>
+        <div class="window-body">
+            <menu role="tablist" aria-label="Login tabs">
+                <li role="tab" aria-selected="true" id="tab-login"><a href="#panel-login">Đăng nhập</a></li>
+                <li role="tab" aria-selected="false" id="tab-register"><a href="#panel-register">Đăng ký</a></li>
+            </menu>
+            <div class="login-panels">
+                <article class="tabpanel-shell" role="tabpanel" id="panel-login" aria-labelledby="tab-login">
+                    <div class="login-form">
+                        <div class="field-row-stacked">
+                            <label for="loginUsername">Username</label>
+                            <input id="loginUsername" type="text" autocomplete="username" maxlength="10">
+                        </div>
+                        <div class="field-row-stacked">
+                            <label for="loginPassword">Password</label>
+                            <input id="loginPassword" type="password" autocomplete="current-password" maxlength="10">
+                        </div>
+                        <div class="field-row">
+                            <button id="btnLogin" class="default">Đăng nhập</button>
+                            <span id="loginStatus" class="status-text"></span>
+                        </div>
+                    </div>
+                </article>
+                <article class="tabpanel-shell" role="tabpanel" id="panel-register" aria-labelledby="tab-register"
+                    hidden>
+                    <div class="login-form">
+                        <div class="field-row-stacked">
+                            <label for="registerUsername">Username</label>
+                            <input id="registerUsername" type="text" autocomplete="username" maxlength="10">
+                        </div>
+                        <div class="field-row-stacked">
+                            <label for="registerPassword">Password</label>
+                            <input id="registerPassword" type="password" autocomplete="new-password" maxlength="10">
+                        </div>
+                        <div class="field-row-stacked">
+                            <label for="registerConfirm">Confirm password</label>
+                            <input id="registerConfirm" type="password" autocomplete="new-password" maxlength="10">
+                        </div>
+                        <div class="field-row">
+                            <button id="btnRegister" class="default">Đăng ký</button>
+                            <span id="registerStatus" class="status-text"></span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="status-bar">
+            <p class="status-bar-field" id="loginFooter">Vui lòng đăng nhập để vào Desktop.</p>
+        </div>
+    </div>
 
-            <div class="window-body">
-                <menu role="tablist" aria-label="Play With AI tabs">
-                    <li role="tab" aria-selected="true" id="tab-chat" data-tab="chat"><a href="#chat-panel">Hội thoại AI</a></li>
-                    <li role="tab" aria-selected="false" id="tab-settings" data-tab="settings"><a href="#settings-panel">Cài đặt Hệ thống</a></li>
-                </menu>
+    <div id="desktop">
+        <div id="desktop-icons" class="desktop-icons">
+            <button class="desktop-icon" type="button" data-open="ai">
+                <img src="icons/themes-4.png" alt="Play With AI">
+                <span class="icon-label">Play With AI</span>
+            </button>
+            <button class="desktop-icon" type="button" data-open="messenger">
+                <img src="icons/mailbox_world-2.png" alt="Messenger">
+                <span class="icon-label">Messenger</span>
+            </button>
+            <button class="desktop-icon" type="button" data-open="chess">
+                <img src="icons/games-4.png" alt="Cờ Tướng" onerror="this.src='icons/themes-4.png'">
+                <span class="icon-label">Cờ Tướng</span>
+            </button>
+        </div>
 
-                <div class="workspace">
-                    <article class="window tabpanel-shell" role="tabpanel" id="chat-panel" aria-labelledby="tab-chat">
-                        <div class="tabpanel-inner">
-                            <div class="chat-layout">
-                                <div class="sidebar" id="chatSidebar">
-                                    <button id="btnNewChat"><strong>New Chat</strong></button>
-                                    <div class="sunken-panel list-panel" id="sessionPanel" aria-label="Session list">
-                                        <table class="interactive" id="sessionTable">
-                                            <thead>
-                                            <tr>
-                                                <th>Tên đoạn chat</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody id="sessionTableBody"></tbody>
-                                        </table>
+        <div id="window-layer" class="window-layer">
+            <div id="window-ai" class="window os-window app-window desktop-window" data-window="ai"
+                aria-label="Play With AI" hidden>
+                <div class="title-bar">
+                    <div class="title-bar-text">Play With AI - Gemini (Windows 98)</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Minimize" data-window-control="minimize"></button>
+                        <button aria-label="Maximize" data-window-control="maximize"></button>
+                        <button aria-label="Close" data-window-control="close"></button>
+                    </div>
+                </div>
+
+                <div class="window-body">
+                    <menu role="tablist" aria-label="Play With AI tabs">
+                        <li role="tab" aria-selected="true" id="tab-chat" data-tab="chat"><a href="#chat-panel">Hội
+                                thoại AI</a></li>
+                        <li role="tab" aria-selected="false" id="tab-settings" data-tab="settings"><a
+                                href="#settings-panel">Cài đặt Hệ thống</a></li>
+                    </menu>
+
+                    <div class="workspace">
+                        <article class="window tabpanel-shell" role="tabpanel" id="chat-panel"
+                            aria-labelledby="tab-chat">
+                            <div class="tabpanel-inner">
+                                <div class="chat-layout">
+                                    <div class="sidebar" id="chatSidebar">
+                                        <button id="btnNewChat"><strong>New Chat</strong></button>
+                                        <div class="sunken-panel list-panel" id="sessionPanel"
+                                            aria-label="Session list">
+                                            <table class="interactive" id="sessionTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tên đoạn chat</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="sessionTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="toolbar-actions">
+                                            <button id="btnRename" class="grow">Rename</button>
+                                            <button id="btnDelete" class="grow">Delete</button>
+                                        </div>
                                     </div>
-                                    <div class="toolbar-actions">
-                                        <button id="btnRename" class="grow">Rename</button>
-                                        <button id="btnDelete" class="grow">Delete</button>
+
+                                    <div class="sidebar-splitter" id="sidebarSplitter"
+                                        title="Keo de thay doi chieu rong"></div>
+
+                                    <div class="main-chat-area">
+                                        <div class="toolbar-panel chat-toolbar">
+                                            <div class="field-row">
+                                                <label for="modelSelect"><strong>Model</strong></label>
+                                                <select id="modelSelect">
+                                                    <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                                                    <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                                                    <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
+                                                </select>
+                                            </div>
+                                            <div class="divider" aria-hidden="true"></div>
+                                            <div class="field-row">
+                                                <label for="fontSelect"><strong>Font</strong></label>
+                                                <select id="fontSelect">
+                                                    <option value="MS Sans Serif" selected>MS Sans Serif</option>
+                                                    <option value="Times New Roman">Times New Roman</option>
+                                                    <option value="Arial">Arial</option>
+                                                    <option value="Tahoma">Tahoma</option>
+                                                    <option value="Courier New">Courier New</option>
+                                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                                                </select>
+                                            </div>
+                                            <div class="field-row">
+                                                <label for="fontSizeRange"><strong>Size</strong></label>
+                                                <input id="fontSizeRange" type="range" min="8" max="24" value="12">
+                                                <span id="fontSizeLabel">12</span>
+                                            </div>
+                                            <div class="divider" aria-hidden="true"></div>
+                                            <div class="field-row">
+                                                <label for="bgSelect"><strong>Màu nền</strong></label>
+                                                <select id="bgSelect">
+                                                    <option value="white" selected>Trắng (Mặc định)</option>
+                                                    <option value="notepad">Vàng nhạt (Notepad)</option>
+                                                    <option value="desktop">Xanh lơ (Win98 Desktop)</option>
+                                                    <option value="matrix">Xanh rêu (Matrix)</option>
+                                                    <option value="dialog">Xám (Hộp thoại)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="chat-split" id="chatSplit">
+                                            <div class="sunken-panel chat-history" id="chatArea" aria-live="polite">
+                                            </div>
+                                            <div class="chat-splitter" id="chatSplitter"
+                                                title="Keo de thay doi chieu cao"></div>
+                                            <div class="composer" id="chatComposer">
+                                                <textarea id="userInput" rows="4"
+                                                    placeholder="Type a message. Enter sends, Shift+Enter for new line."></textarea>
+                                                <button id="btnSend"><strong>Send</strong></button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                        </article>
 
-                                <div class="sidebar-splitter" id="sidebarSplitter" title="Keo de thay doi chieu rong"></div>
+                        <article class="window tabpanel-shell" role="tabpanel" id="settings-panel"
+                            aria-labelledby="tab-settings" hidden>
+                            <div class="tabpanel-inner">
+                                <div class="settings-layout">
+                                    <fieldset class="settings-column">
+                                        <legend>Danh sách API Key</legend>
+                                        <div class="sunken-panel list-panel" id="keyPanel" aria-label="API key list">
+                                            <table class="interactive" id="keyTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tên key</th>
+                                                        <th>Trạng thái</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="keyTableBody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="settings-actions">
+                                            <button id="btnSetKey" class="grow">Chọn làm Mặc định</button>
+                                            <button id="btnDelKey" class="grow">Xóa Key</button>
+                                        </div>
+                                    </fieldset>
 
-                                <div class="main-chat-area">
-                                    <div class="toolbar-panel chat-toolbar">
-                                        <div class="field-row">
-                                            <label for="modelSelect"><strong>Model</strong></label>
-                                            <select id="modelSelect">
-                                                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                                                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                                                <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
-                                            </select>
+                                    <fieldset class="settings-column">
+                                        <legend>Thêm Key Dự phòng</legend>
+                                        <div class="settings-inline">
+                                            <label for="keyName">Tên gợi nhớ (VD: Key chính):</label>
+                                            <input id="keyName" type="text" autocomplete="off" spellcheck="false">
+                                            <label for="keyValue">Mã API Key:</label>
+                                            <input id="keyValue" type="password" autocomplete="off" spellcheck="false">
+                                            <button id="btnAddKey">Thêm Key mới</button>
                                         </div>
-                                        <div class="divider" aria-hidden="true"></div>
-                                        <div class="field-row">
-                                            <label for="fontSelect"><strong>Font</strong></label>
-                                            <select id="fontSelect">
-                                                <option value="MS Sans Serif" selected>MS Sans Serif</option>
-                                                <option value="Times New Roman">Times New Roman</option>
-                                                <option value="Arial">Arial</option>
-                                                <option value="Tahoma">Tahoma</option>
-                                                <option value="Courier New">Courier New</option>
-                                                <option value="Comic Sans MS">Comic Sans MS</option>
-                                            </select>
-                                        </div>
-                                        <div class="field-row">
-                                            <label for="fontSizeRange"><strong>Size</strong></label>
-                                            <input id="fontSizeRange" type="range" min="8" max="24" value="12">
-                                            <span id="fontSizeLabel">12</span>
-                                        </div>
-                                        <div class="divider" aria-hidden="true"></div>
-                                        <div class="field-row">
-                                            <label for="bgSelect"><strong>Màu nền</strong></label>
-                                            <select id="bgSelect">
-                                                <option value="white" selected>Trắng (Mặc định)</option>
-                                                <option value="notepad">Vàng nhạt (Notepad)</option>
-                                                <option value="desktop">Xanh lơ (Win98 Desktop)</option>
-                                                <option value="matrix">Xanh rêu (Matrix)</option>
-                                                <option value="dialog">Xám (Hộp thoại)</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="chat-split" id="chatSplit">
-                                        <div class="sunken-panel chat-history" id="chatArea" aria-live="polite"></div>
-                                        <div class="chat-splitter" id="chatSplitter" title="Keo de thay doi chieu cao"></div>
-                                        <div class="composer" id="chatComposer">
-                                            <textarea id="userInput" rows="4" placeholder="Type a message. Enter sends, Shift+Enter for new line."></textarea>
-                                            <button id="btnSend"><strong>Send</strong></button>
-                                        </div>
-                                    </div>
+                                    </fieldset>
                                 </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </div>
+                </div>
 
-                    <article class="window tabpanel-shell" role="tabpanel" id="settings-panel" aria-labelledby="tab-settings" hidden>
-                        <div class="tabpanel-inner">
-                            <div class="settings-layout">
-                                <fieldset class="settings-column">
-                                    <legend>Danh sách API Key</legend>
-                                    <div class="sunken-panel list-panel" id="keyPanel" aria-label="API key list">
-                                        <table class="interactive" id="keyTable">
-                                            <thead>
-                                            <tr>
-                                                <th>Tên key</th>
-                                                <th>Trạng thái</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody id="keyTableBody"></tbody>
-                                        </table>
-                                    </div>
-                                    <div class="settings-actions">
-                                        <button id="btnSetKey" class="grow">Chọn làm Mặc định</button>
-                                        <button id="btnDelKey" class="grow">Xóa Key</button>
-                                    </div>
-                                </fieldset>
-
-                                <fieldset class="settings-column">
-                                    <legend>Thêm Key Dự phòng</legend>
-                                    <div class="settings-inline">
-                                        <label for="keyName">Tên gợi nhớ (VD: Key chính):</label>
-                                        <input id="keyName" type="text" autocomplete="off" spellcheck="false">
-                                        <label for="keyValue">Mã API Key:</label>
-                                        <input id="keyValue" type="password" autocomplete="off" spellcheck="false">
-                                        <button id="btnAddKey">Thêm Key mới</button>
-                                    </div>
-                                </fieldset>
-                            </div>
-                        </div>
-                    </article>
+                <div class="status-bar">
+                    <p class="status-bar-field" id="statusText">Ready</p>
                 </div>
             </div>
 
-            <div class="status-bar">
-                <p class="status-bar-field" id="statusText">Ready</p>
-            </div>
-        </div>
-
-        <div id="window-messenger" class="window os-window app-window messenger-window" data-window="messenger" aria-label="Windows Messenger" hidden>
-            <div class="title-bar">
-                <div class="title-bar-text">
-                    <img class="title-icon" src="icons/mailbox_world-2.png" alt="">
-                    Windows Messenger
+            <div id="window-messenger" class="window os-window app-window messenger-window" data-window="messenger"
+                aria-label="Windows Messenger" hidden>
+                <div class="title-bar">
+                    <div class="title-bar-text">
+                        <img class="title-icon" src="icons/mailbox_world-2.png" alt="">
+                        Windows Messenger
+                    </div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Minimize" data-window-control="minimize"></button>
+                        <button aria-label="Maximize" data-window-control="maximize"></button>
+                        <button aria-label="Close" data-window-control="close"></button>
+                    </div>
                 </div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimize" data-window-control="minimize"></button>
-                    <button aria-label="Maximize" data-window-control="maximize"></button>
-                    <button aria-label="Close" data-window-control="close"></button>
+                <div class="window-body messenger-shell">
+                    <div class="messenger-layout">
+                        <aside class="messenger-contacts">
+                            <div class="toolbar-panel">
+                                <strong>Danh bạ</strong>
+                            </div>
+                            <div class="sunken-panel messenger-self">
+                                <div class="field-row">
+                                    <span class="messenger-label">Bạn:</span>
+                                    <strong id="messengerSelfName">Chưa đăng nhập</strong>
+                                </div>
+                                <div class="field-row">
+                                    <span class="messenger-label">Kết nối:</span>
+                                    <span id="messengerSelfStatus">Disconnected</span>
+                                </div>
+                            </div>
+                            <div class="sunken-panel list-panel">
+                                <ul class="contact-list" id="contactList" aria-label="Danh sách liên hệ">
+                                </ul>
+                            </div>
+                        </aside>
+
+                        <section class="messenger-chat">
+                            <div class="toolbar-panel chat-toolbar messenger-toolbar">
+                                <div class="field-row">
+                                    <label for="messengerTarget"><strong>To:</strong></label>
+                                    <input id="messengerTarget" type="text" placeholder="username"
+                                        style="width: 100px;">
+                                </div>
+                                <div class="divider" aria-hidden="true"></div>
+                                <div class="field-row">
+                                    <label for="msgFontSelect"><strong>Font</strong></label>
+                                    <select id="msgFontSelect">
+                                        <option value="MS Sans Serif" selected>MS Sans Serif</option>
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Arial">Arial</option>
+                                        <option value="Tahoma">Tahoma</option>
+                                        <option value="Courier New">Courier New</option>
+                                        <option value="Comic Sans MS">Comic Sans MS</option>
+                                    </select>
+                                </div>
+                                <div class="field-row">
+                                    <label for="msgFontSizeRange"><strong>Size</strong></label>
+                                    <input id="msgFontSizeRange" type="range" min="8" max="24" value="11"
+                                        style="width: 80px;">
+                                </div>
+                                <div class="divider" aria-hidden="true"></div>
+                                <div class="field-row">
+                                    <label for="msgBgSelect"><strong>Nền</strong></label>
+                                    <select id="msgBgSelect">
+                                        <option value="white" selected>Trắng</option>
+                                        <option value="notepad">Notepad</option>
+                                        <option value="desktop">Win98</option>
+                                        <option value="matrix">Matrix</option>
+                                        <option value="dialog">Xám</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="chat-split" id="messengerSplit">
+                                <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite">
+                                    <div class="messenger-empty" id="messengerEmpty">Chưa có tin nhắn.</div>
+                                </div>
+
+                                <div class="chat-splitter" id="messengerSplitter" title="Keo de thay doi chieu cao">
+                                </div>
+
+                                <div class="composer messenger-composer" id="messengerComposer">
+                                    <textarea id="messengerInput" rows="3" placeholder="Nhập tin nhắn..."
+                                        autocomplete="off"></textarea>
+                                    <button id="btnSendPrivate"><strong>Send</strong></button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <p class="status-bar-field" id="messengerStatus">Disconnected</p>
                 </div>
             </div>
-            <div class="window-body messenger-shell">
-                <div class="messenger-layout">
-                    <aside class="messenger-contacts">
-                        <div class="toolbar-panel">
-                            <strong>Danh bạ</strong>
-                        </div>
-                        <div class="sunken-panel messenger-self">
-                            <div class="field-row">
-                                <span class="messenger-label">Bạn:</span>
-                                <strong id="messengerSelfName">Chưa đăng nhập</strong>
-                            </div>
-                            <div class="field-row">
-                                <span class="messenger-label">Kết nối:</span>
-                                <span id="messengerSelfStatus">Disconnected</span>
-                            </div>
-                        </div>
-                        <div class="sunken-panel list-panel">
-                            <ul class="contact-list" id="contactList" aria-label="Danh sách liên hệ">
-                            </ul>
-                        </div>
-                    </aside>
 
-                    <section class="messenger-chat">
-                        <div class="toolbar-panel chat-toolbar messenger-toolbar">
-                            <div class="field-row">
-                                <label for="messengerTarget"><strong>To:</strong></label>
-                                <input id="messengerTarget" type="text" placeholder="username" style="width: 100px;">
+            <div id="window-call" class="window os-window app-window call-window" data-window="call"
+                aria-label="Voice/Video Call" hidden>
+                <div class="title-bar">
+                    <div class="title-bar-text">Call</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Minimize" data-window-control="minimize"></button>
+                        <button aria-label="Maximize" data-window-control="maximize"></button>
+                        <button aria-label="Close" data-window-control="close"></button>
+                    </div>
+                </div>
+                <div class="window-body call-shell">
+                    <div class="call-layout">
+                        <div class="call-panel">
+                            <div class="sunken-panel video-panel">
+                                <video id="localVideo" autoplay muted playsinline></video>
                             </div>
-                            <div class="divider" aria-hidden="true"></div>
-                            <div class="field-row">
-                                <label for="msgFontSelect"><strong>Font</strong></label>
-                                <select id="msgFontSelect">
-                                    <option value="MS Sans Serif" selected>MS Sans Serif</option>
-                                    <option value="Times New Roman">Times New Roman</option>
-                                    <option value="Arial">Arial</option>
-                                    <option value="Tahoma">Tahoma</option>
-                                    <option value="Courier New">Courier New</option>
-                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                            <div class="call-label">Local</div>
+                        </div>
+                        <div class="call-panel">
+                            <div class="sunken-panel video-panel">
+                                <video id="remoteVideo" autoplay playsinline></video>
+                            </div>
+                            <div class="call-label">Remote</div>
+                        </div>
+                    </div>
+                    <div class="toolbar-actions call-actions">
+                        <button id="btnHangup">Hang up</button>
+                        <button id="btnToggleMic">Mic</button>
+                        <button id="btnToggleCam">Cam</button>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <p class="status-bar-field" id="callStatus">Idle</p>
+                </div>
+            </div>
+
+            <!-- Chinese Chess Window -->
+            <div id="window-chess" class="window os-window app-window desktop-window" data-window="chess"
+                aria-label="Cờ Tướng" hidden style="width: 850px; height: 600px;">
+                <div class="title-bar">
+                    <div class="title-bar-text">Cờ Tướng (Xiangqi) - Online</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Minimize" data-window-control="minimize"></button>
+                        <button aria-label="Maximize" data-window-control="maximize"></button>
+                        <button aria-label="Close" data-window-control="close"></button>
+                    </div>
+                </div>
+                <div class="window-body"
+                    style="height: calc(100% - 30px); margin: 0; padding: 0; display: flex; flex-direction: column;">
+
+                    <div id="chess-app-wrapper"
+                        style="flex: 1; background: #9bc4e2; display: flex; flex-direction: column;">
+                        <!-- LOBBY VIEW -->
+                        <div id="chess-lobby" style="height: 100%; display: flex; flex-direction: column;">
+                            <div style="display: flex; padding: 10px; gap: 10px; align-items: center;">
+                                <button id="btnChessCreateRoom" style="padding: 3px 20px;">mở bàn mới</button>
+                                <select id="chessLobbyFilter" style="padding: 2px;">
+                                    <option>#... mọi nơi</option>
                                 </select>
+                                <button id="btnChessRefreshLobby" style="padding: 3px 15px;">các bàn chơi</button>
                             </div>
-                            <div class="field-row">
-                                <label for="msgFontSizeRange"><strong>Size</strong></label>
-                                <input id="msgFontSizeRange" type="range" min="8" max="24" value="11" style="width: 80px;">
-                            </div>
-                            <div class="divider" aria-hidden="true"></div>
-                            <div class="field-row">
-                                <label for="msgBgSelect"><strong>Nền</strong></label>
-                                <select id="msgBgSelect">
-                                    <option value="white" selected>Trắng</option>
-                                    <option value="notepad">Notepad</option>
-                                    <option value="desktop">Win98</option>
-                                    <option value="matrix">Matrix</option>
-                                    <option value="dialog">Xám</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="chat-split" id="messengerSplit">
-                            <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite">
-                                <div class="messenger-empty" id="messengerEmpty">Chưa có tin nhắn.</div>
-                            </div>
-
-                            <div class="chat-splitter" id="messengerSplitter" title="Keo de thay doi chieu cao"></div>
-
-                            <div class="composer messenger-composer" id="messengerComposer">
-                                <textarea id="messengerInput" rows="3" placeholder="Nhập tin nhắn..." autocomplete="off"></textarea>
-                                <button id="btnSendPrivate"><strong>Send</strong></button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="status-bar">
-                <p class="status-bar-field" id="messengerStatus">Disconnected</p>
-            </div>
-        </div>
-
-        <div id="window-call" class="window os-window app-window call-window" data-window="call" aria-label="Voice/Video Call" hidden>
-            <div class="title-bar">
-                <div class="title-bar-text">Call</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimize" data-window-control="minimize"></button>
-                    <button aria-label="Maximize" data-window-control="maximize"></button>
-                    <button aria-label="Close" data-window-control="close"></button>
-                </div>
-            </div>
-            <div class="window-body call-shell">
-                <div class="call-layout">
-                    <div class="call-panel">
-                        <div class="sunken-panel video-panel">
-                            <video id="localVideo" autoplay muted playsinline></video>
-                        </div>
-                        <div class="call-label">Local</div>
-                    </div>
-                    <div class="call-panel">
-                        <div class="sunken-panel video-panel">
-                            <video id="remoteVideo" autoplay playsinline></video>
-                        </div>
-                        <div class="call-label">Remote</div>
-                    </div>
-                </div>
-                <div class="toolbar-actions call-actions">
-                    <button id="btnHangup">Hang up</button>
-                    <button id="btnToggleMic">Mic</button>
-                    <button id="btnToggleCam">Cam</button>
-                </div>
-            </div>
-            <div class="status-bar">
-                <p class="status-bar-field" id="callStatus">Idle</p>
-            </div>
-        </div>
-
-        <!-- Chinese Chess Window -->
-        <div id="window-chess" class="window os-window app-window desktop-window" data-window="chess" aria-label="Cờ Tướng" hidden style="width: 850px; height: 600px;">
-            <div class="title-bar">
-                <div class="title-bar-text">Cờ Tướng (Xiangqi) - Online</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimize" data-window-control="minimize"></button>
-                    <button aria-label="Maximize" data-window-control="maximize"></button>
-                    <button aria-label="Close" data-window-control="close"></button>
-                </div>
-            </div>
-            <div class="window-body" style="height: calc(100% - 30px); margin: 0; padding: 0; display: flex; flex-direction: column;">
-                
-                <div id="chess-app-wrapper" style="flex: 1; background: #9bc4e2; display: flex; flex-direction: column;">
-                    <!-- LOBBY VIEW -->
-                    <div id="chess-lobby" style="height: 100%; display: flex; flex-direction: column;">
-                        <div style="display: flex; padding: 10px; gap: 10px; align-items: center;">
-                            <button id="btnChessCreateRoom" style="padding: 3px 20px;">mở bàn mới</button>
-                            <select id="chessLobbyFilter" style="padding: 2px;">
-                                <option>#... mọi nơi</option>
-                            </select>
-                            <button id="btnChessRefreshLobby" style="padding: 3px 15px;">các bàn chơi</button>
-                        </div>
-                        <div style="display: flex; flex: 1; padding: 0 10px 10px 10px; gap: 10px; overflow: hidden;">
-                            <!-- Left: Room List -->
-                            <div class="sunken-panel" style="flex: 3; background: white; overflow-y: auto;">
-                                <table class="interactive" style="width: 100%; text-align: left; font-size: 13px;">
-                                    <tbody id="chessRoomList">
-                                        <!-- Dynamic rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- Right: User List -->
-                            <div class="sunken-panel" style="flex: 1; background: white; overflow-y: auto; padding: 10px; font-size: 12px; line-height: 1.8;">
-                                <div id="chessOnlineUsers">
-                                    <!-- Dynamic users -->
-                                    <span style="color:#666;">Đang tải danh sách...</span>
+                            <div
+                                style="display: flex; flex: 1; padding: 0 10px 10px 10px; gap: 10px; overflow: hidden;">
+                                <!-- Left: Room List -->
+                                <div class="sunken-panel" style="flex: 3; background: white; overflow-y: auto;">
+                                    <table class="interactive" style="width: 100%; text-align: left; font-size: 13px;">
+                                        <tbody id="chessRoomList">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GAME VIEW -->
-                    <div id="chess-game-area" style="display: none; height: 100%; padding: 10px; box-sizing: border-box; gap: 15px;">
-                        
-                        <!-- LEFT: BOARD -->
-                        <div style="flex: 0 0 540px; background: #e2a65a; border: 2px solid #5c3a21; position: relative; display: flex; justify-content: center; align-items: center; padding: 20px;">
-                            <div class="chess-board" id="chessBoard"></div>
-                            <div id="chessWaitingOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #e31818; color: white; padding: 10px 40px; font-weight: bold; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 100;">
-                                đang chờ đối thủ
-                            </div>
-                        </div>
-
-                        <!-- RIGHT: SIDEBAR -->
-                        <div class="chess-sidebar" style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
-                            
-                            <!-- Room Header -->
-                            <div style="font-weight: bold; font-size: 14px; color: black;">
-                                <span id="chessGameRoomName">bàn #...</span> <span style="margin-left: 10px; font-weight: normal;">10p</span>
-                            </div>
-
-                            <!-- Player Info -->
-                            <div style="display: flex; gap: 10px;">
-                                <div style="flex: 1; display: flex; flex-direction: column;">
-                                    <div style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
-                                        <div style="width: 8px; height: 8px; background: red;"></div> #1
-                                    </div>
-                                    <div class="sunken-panel" id="chessPlayerRed" style="background: white; padding: 8px 5px; font-size: 14px; font-weight: bold; min-height: 18px; margin-top: 2px;">-</div>
-                                    <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
-                                </div>
-                                <div style="flex: 1; display: flex; flex-direction: column;">
-                                    <div style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
-                                        <div style="width: 8px; height: 8px; background: #888;"></div> #2
-                                    </div>
-                                    <div class="sunken-panel" id="chessPlayerBlack" style="background: rgba(255,255,255,0.5); padding: 8px 5px; font-size: 14px; color: #666; min-height: 18px; margin-top: 2px;">-</div>
-                                    <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div style="display: flex; gap: 5px; justify-content: space-between;">
-                                <button id="btnChessDraw" style="flex: 1;">một trận hòa</button>
-                                <button id="btnChessResign" style="flex: 1;">bỏ cuộc</button>
-                                <button id="btnChessLeave" style="flex: 1;">rời bàn</button>
-                            </div>
-
-                            <!-- Chat & Logs -->
-                            <div style="flex: 1; display: flex; flex-direction: column; background: #9bc4e2;">
-                                <menu role="tablist" style="margin: 0;">
-                                    <li role="tab" aria-selected="true"><a href="#tabs">nói</a></li>
-                                    <li role="tab"><a href="#tabs">nước cờ</a></li>
-                                    <li role="tab"><a href="#tabs">ai trong</a></li>
-                                    <li role="tab"><a href="#tabs">luật</a></li>
-                                </menu>
-                                <div class="window-body" style="flex: 1; margin: 0; padding: 5px; background: #c0c0c0; border-left: 1px solid white; border-right: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column;">
-                                    <div class="sunken-panel" id="chessLogArea" style="flex: 1; overflow-y: auto; padding: 5px; font-size: 12px; background: white; margin-bottom: 5px;">
-                                        <!-- chat logs here -->
-                                    </div>
-                                    <div class="field-row" style="display: flex; gap: 5px;">
-                                        <button style="min-width: 30px;">...</button>
-                                        <input type="text" id="chessChatInput" style="flex: 1;" autocomplete="off">
+                                <!-- Right: User List -->
+                                <div class="sunken-panel"
+                                    style="flex: 1; background: white; overflow-y: auto; padding: 10px; font-size: 12px; line-height: 1.8;">
+                                    <div id="chessOnlineUsers">
+                                        <!-- Dynamic users -->
+                                        <span style="color:#666;">Đang tải danh sách...</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
+                        <!-- GAME VIEW -->
+                        <div id="chess-game-area"
+                            style="display: none; height: 100%; padding: 10px; box-sizing: border-box; gap: 15px;">
+
+                            <!-- LEFT: BOARD -->
+                            <div
+                                style="flex: 0 0 540px; background: #e2a65a; border: 2px solid #5c3a21; position: relative; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                                <div class="chess-board" id="chessBoard"></div>
+                                <div id="chessWaitingOverlay"
+                                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #e31818; color: white; padding: 10px 40px; font-weight: bold; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); z-index: 100;">
+                                    đang chờ đối thủ
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: SIDEBAR -->
+                            <div class="chess-sidebar"
+                                style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+
+                                <!-- Room Header -->
+                                <div style="font-weight: bold; font-size: 14px; color: black;">
+                                    <span id="chessGameRoomName">bàn #...</span> <span
+                                        style="margin-left: 10px; font-weight: normal;">10p</span>
+                                </div>
+
+                                <!-- Player Info -->
+                                <div style="display: flex; gap: 10px;">
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div
+                                            style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 8px; height: 8px; background: red;"></div> #1
+                                        </div>
+                                        <div class="sunken-panel" id="chessPlayerRed"
+                                            style="background: white; padding: 8px 5px; font-size: 14px; font-weight: bold; min-height: 18px; margin-top: 2px;">
+                                            -</div>
+                                        <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column;">
+                                        <div
+                                            style="background: #222; color: white; padding: 2px 5px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                                            <div style="width: 8px; height: 8px; background: #888;"></div> #2
+                                        </div>
+                                        <div class="sunken-panel" id="chessPlayerBlack"
+                                            style="background: rgba(255,255,255,0.5); padding: 8px 5px; font-size: 14px; color: #666; min-height: 18px; margin-top: 2px;">
+                                            -</div>
+                                        <div style="font-size: 12px; color: #333; margin-top: 3px;">0:00</div>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div style="display: flex; gap: 5px; justify-content: space-between;">
+                                    <button id="btnChessDraw" style="flex: 1;">một trận hòa</button>
+                                    <button id="btnChessResign" style="flex: 1;">bỏ cuộc</button>
+                                    <button id="btnChessLeave" style="flex: 1;">rời bàn</button>
+                                </div>
+
+                                <!-- Chat & Logs -->
+                                <div style="flex: 1; display: flex; flex-direction: column; background: #9bc4e2;">
+                                    <menu role="tablist" style="margin: 0;">
+                                        <li role="tab" aria-selected="true"><a href="#tabs">nói</a></li>
+                                        <li role="tab"><a href="#tabs">nước cờ</a></li>
+                                        <li role="tab"><a href="#tabs">ai trong</a></li>
+                                        <li role="tab"><a href="#tabs">luật</a></li>
+                                    </menu>
+                                    <div class="window-body"
+                                        style="flex: 1; margin: 0; padding: 5px; background: #c0c0c0; border-left: 1px solid white; border-right: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column;">
+                                        <div class="sunken-panel" id="chessLogArea"
+                                            style="flex: 1; overflow-y: auto; padding: 5px; font-size: 12px; background: white; margin-bottom: 5px;">
+                                            <!-- chat logs here -->
+                                        </div>
+                                        <div class="field-row" style="display: flex; gap: 5px;">
+                                            <button style="min-width: 30px;">...</button>
+                                            <input type="text" id="chessChatInput" style="flex: 1;" autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="taskbar" class="taskbar">
+            <button id="startButton" class="start-button">Start</button>
+            <div id="taskbarWindows" class="taskbar-windows" aria-label="Running apps"></div>
+            <div id="taskbarClock" class="taskbar-clock">00:00</div>
+        </div>
     </div>
 
-    <div id="taskbar" class="taskbar">
-        <button id="startButton" class="start-button">Start</button>
-        <div id="taskbarWindows" class="taskbar-windows" aria-label="Running apps"></div>
-        <div id="taskbarClock" class="taskbar-clock">00:00</div>
+    <div id="start-menu" class="window start-menu" role="dialog" aria-labelledby="start-menu-title" hidden>
+        <div class="title-bar">
+            <div class="title-bar-text" id="start-menu-title">Start Menu</div>
+            <div class="title-bar-controls">
+                <button aria-label="Close" data-start-close></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <menu role="tablist" aria-label="Start menu tabs">
+                <li role="tab" aria-selected="true" id="start-tab-account"><a href="#start-panel-account">Tài khoản</a>
+                </li>
+                <li role="tab" aria-selected="false" id="start-tab-password"><a href="#start-panel-password">Đổi mật
+                        khẩu</a></li>
+            </menu>
+            <div class="start-panels">
+                <article class="tabpanel-shell" role="tabpanel" id="start-panel-account"
+                    aria-labelledby="start-tab-account">
+                    <div class="field-row-stacked">
+                        <label>Tên đăng nhập:</label>
+                        <div class="sunken-panel start-username" id="startUsername"></div>
+                    </div>
+                    <div class="field-row start-actions">
+                        <button id="btnLogout" class="default">Đăng xuất</button>
+                    </div>
+                </article>
+                <article class="tabpanel-shell" role="tabpanel" id="start-panel-password"
+                    aria-labelledby="start-tab-password" hidden>
+                    <div class="field-row-stacked">
+                        <label for="oldPassword">Mật khẩu cũ</label>
+                        <input id="oldPassword" type="password" maxlength="10">
+                    </div>
+                    <div class="field-row-stacked">
+                        <label for="newPassword">Mật khẩu mới</label>
+                        <input id="newPassword" type="password" maxlength="10">
+                    </div>
+                    <div class="field-row-stacked">
+                        <label for="confirmNewPassword">Xác nhận mật khẩu mới</label>
+                        <input id="confirmNewPassword" type="password" maxlength="10">
+                    </div>
+                    <div class="field-row start-actions">
+                        <button id="btnChangePassword" class="default">Đổi mật khẩu</button>
+                    </div>
+                </article>
+            </div>
+        </div>
     </div>
-</div>
 
-<div id="start-menu" class="window start-menu" role="dialog" aria-labelledby="start-menu-title" hidden>
-    <div class="title-bar">
-        <div class="title-bar-text" id="start-menu-title">Start Menu</div>
-        <div class="title-bar-controls">
-            <button aria-label="Close" data-start-close></button>
+    <div id="dialog-overlay" class="dialog-overlay" hidden></div>
+    <div id="dialog-modal" class="window dialog-window" role="dialog" aria-labelledby="dialog-title" hidden>
+        <div class="title-bar">
+            <div class="title-bar-text" id="dialog-title">Thông báo</div>
+            <div class="title-bar-controls">
+                <button aria-label="Close" data-dialog-close></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <p id="dialog-message"></p>
+            <div class="field-row dialog-actions">
+                <button id="dialog-ok" class="default">OK</button>
+            </div>
         </div>
     </div>
-    <div class="window-body">
-        <menu role="tablist" aria-label="Start menu tabs">
-            <li role="tab" aria-selected="true" id="start-tab-account"><a href="#start-panel-account">Tài khoản</a></li>
-            <li role="tab" aria-selected="false" id="start-tab-password"><a href="#start-panel-password">Đổi mật khẩu</a></li>
-        </menu>
-        <div class="start-panels">
-            <article class="tabpanel-shell" role="tabpanel" id="start-panel-account" aria-labelledby="start-tab-account">
-                <div class="field-row-stacked">
-                    <label>Tên đăng nhập:</label>
-                    <div class="sunken-panel start-username" id="startUsername"></div>
-                </div>
-                <div class="field-row start-actions">
-                    <button id="btnLogout" class="default">Đăng xuất</button>
-                </div>
-            </article>
-            <article class="tabpanel-shell" role="tabpanel" id="start-panel-password" aria-labelledby="start-tab-password" hidden>
-                <div class="field-row-stacked">
-                    <label for="oldPassword">Mật khẩu cũ</label>
-                    <input id="oldPassword" type="password" maxlength="10">
-                </div>
-                <div class="field-row-stacked">
-                    <label for="newPassword">Mật khẩu mới</label>
-                    <input id="newPassword" type="password" maxlength="10">
-                </div>
-                <div class="field-row-stacked">
-                    <label for="confirmNewPassword">Xác nhận mật khẩu mới</label>
-                    <input id="confirmNewPassword" type="password" maxlength="10">
-                </div>
-                <div class="field-row start-actions">
-                    <button id="btnChangePassword" class="default">Đổi mật khẩu</button>
-                </div>
-            </article>
-        </div>
-    </div>
-</div>
-
-<div id="dialog-overlay" class="dialog-overlay" hidden></div>
-<div id="dialog-modal" class="window dialog-window" role="dialog" aria-labelledby="dialog-title" hidden>
-    <div class="title-bar">
-        <div class="title-bar-text" id="dialog-title">Thông báo</div>
-        <div class="title-bar-controls">
-            <button aria-label="Close" data-dialog-close></button>
-        </div>
-    </div>
-    <div class="window-body">
-        <p id="dialog-message"></p>
-        <div class="field-row dialog-actions">
-            <button id="dialog-ok" class="default">OK</button>
-        </div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-<script src="js/config.js?v=4"></script>
-<script src="app.js?v=4"></script>
-<script src="js/os/window-manager.js?v=4"></script>
-<script src="js/os/auth.js?v=4"></script>
-<script src="js/os/desktop.js?v=4"></script>
-<script src="js/messenger/stomp-client.js?v=4"></script>
-<script src="js/messenger/webrtc.js?v=4"></script>
-<script src="js/messenger/messenger.js?v=4"></script>
-<script src="js/game/chinese-chess.js?v=4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="app.js"></script>
+    <script src="js/os/window-manager.js"></script>
+    <script src="js/os/auth.js"></script>
+    <script src="js/os/desktop.js"></script>
+    <script src="js/messenger/stomp-client.js"></script>
+    <script src="js/messenger/webrtc.js"></script>
+    <script src="js/messenger/messenger.js"></script>
+    <script src="js/game/chinese-chess.js"></script>
 </body>
+
 </html>

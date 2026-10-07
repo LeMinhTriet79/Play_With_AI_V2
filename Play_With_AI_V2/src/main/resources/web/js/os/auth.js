@@ -76,24 +76,6 @@
     }
 
     function sendJson(url, payload) {
-        if (window.fetch) {
-            return fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(function(response) {
-                return response.text().then(function(text) {
-                    const data = parseJson(text) || { message: text };
-                    if (response.ok) {
-                        return data;
-                    }
-                    const error = new Error(data && data.message ? data.message : 'Request failed');
-                    error.status = response.status;
-                    error.data = data;
-                    throw error;
-                });
-            });
-        }
 
         return new Promise(function(resolve, reject) {
             const xhr = new XMLHttpRequest();
