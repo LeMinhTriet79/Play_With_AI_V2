@@ -1,5 +1,16 @@
+.messenger-window {
+    display: flex;
+    flex-direction: column;
+}
+
+.messenger-window .window-body {
+    flex: 1;
+    min-height: 0;
+}
+
 .messenger-shell {
-    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .messenger-window .title-bar-text {
@@ -15,16 +26,16 @@
 }
 
 .messenger-layout {
-    display: table;
+    display: flex;
     width: 100%;
     height: 100%;
-    table-layout: fixed;
-    border-spacing: 0;
+    flex: 1 1 auto;
 }
 
 .messenger-contacts,
 .messenger-chat {
-    display: table-cell;
+    display: flex;
+    flex-direction: column;
     vertical-align: top;
 }
 
@@ -33,12 +44,16 @@
     padding-right: 6px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-width: 220px;
+    flex-shrink: 0;
 }
 
 .messenger-self {
     margin: 6px 0;
     padding: 6px;
+    background-color: var(--msg-bg-color, #ffffff);
+    color: var(--msg-text-color, #000000);
+    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
 }
 
 .messenger-label {
@@ -54,12 +69,16 @@
 
 .contact-group {
     font-weight: bold;
-    margin: 4px 0 2px 0;
+    margin: 6px 0 2px 0;
+    padding: 2px 4px;
 }
 
 .messenger-chat {
     padding-left: 6px;
-    height: 100%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .messenger-toolbar {
@@ -71,11 +90,13 @@
 }
 
 .messenger-history {
-    height: calc(100% - 112px);
-    overflow: auto;
+    flex: 1 1 auto;
+    overflow-y: scroll;
     padding: 8px;
-    background: #ffffff;
-    color: #000000;
+    background: var(--msg-bg-color, #ffffff);
+    color: var(--msg-text-color, #000000);
+    font-family: var(--msg-font-family, "Pixelated MS Sans Serif", Arial);
+    font-size: var(--msg-font-size, 11px);
     box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
 }
 
@@ -95,33 +116,30 @@
 }
 
 .message-bubble {
-    max-width: 72%;
-    padding: 6px 8px;
-    background: #f6f6f6;
-    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+    max-width: 80%;
 }
 
 .message-bubble.recalled {
-    color: #808080;
-    font-style: italic;
-}
-
-.message-row-out .message-bubble {
-    background: #ffffff;
+    opacity: 0.7;
 }
 
 .message-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 10px;
+    font-size: 11px;
     color: #000080;
+    font-weight: bold;
     margin-bottom: 4px;
+    border-bottom: 1px solid #c0c0c0;
+    padding-bottom: 2px;
 }
 
 .message-time {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    font-weight: normal;
+    color: #808080;
 }
 
 .message-action {
@@ -135,21 +153,46 @@
 .message-text {
     white-space: pre-wrap;
     word-break: break-word;
+    font-family: var(--msg-font-family, "Pixelated MS Sans Serif", Arial);
+    font-size: var(--msg-font-size, 11px);
 }
 
 .messenger-composer {
     margin-top: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
     min-height: 80px;
 }
 
+.messenger-window input[type="text"],
+.messenger-window textarea {
+    background-color: var(--msg-bg-color, #ffffff);
+    color: var(--msg-text-color, #000000);
+    font-family: var(--msg-font-family, "Pixelated MS Sans Serif", Arial);
+    font-size: var(--msg-font-size, 11px);
+}
+
 .messenger-composer textarea {
-    min-height: 72px;
+    flex: 1;
+    resize: none;
+    min-height: 50px;
+    height: 100%;
+}
+
+.messenger-composer button {
+    width: 60px;
 }
 
 .messenger-contacts .list-panel {
     flex: 1 1 auto;
     min-height: 120px;
     overflow: auto;
+    background-color: var(--msg-bg-color, #ffffff);
+    color: var(--msg-text-color, #000000);
+    font-family: var(--msg-font-family, "Pixelated MS Sans Serif", Arial);
+    font-size: var(--msg-font-size, 11px);
+    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
 }
 
 .contact-item {
@@ -157,7 +200,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    padding: 2px 4px;
+    padding: 2px 4px 2px 10px;
     cursor: pointer;
 }
 

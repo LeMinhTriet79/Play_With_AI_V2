@@ -2,6 +2,11 @@
     let currentTarget = '';
     let presenceTimer = null;
     let statusCache = [];
+    let statusSignature = '';
+    let pendingTarget = '';
+    const LAST_TARGET_KEY = 'messenger.lastTarget';
+    const HISTORY_KEY_PREFIX = 'messenger.history.';
+    const HISTORY_LIMIT = 200;
 
     function getApiBase() {
         return (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || 'https://play-with-ai-v2.onrender.com';
@@ -27,7 +32,6 @@
         return document.getElementById('contactList');
     }
 
-
     function getSelfLabel() {
         return document.getElementById('messengerSelfName');
     }
@@ -42,6 +46,7 @@
             label.textContent = name || 'Chưa đăng nhập';
         }
         if (name && name !== 'Chưa đăng nhập') {
+            pendingTarget = getLastTarget() || '';
             startPresencePolling();
         }
     }
@@ -54,15 +59,68 @@
     }
 
     function setTarget(username) {
-        currentTarget = username || '';
+        const nextTarget = username || '';
+        if (nextTarget === currentTarget) {
+            highlightContact(currentTarget);
+            return;
+        }
+        currentTarget = nextTarget;
         const input = getTargetInput();
         if (input) {
             input.value = currentTarget;
         }
-        renderContacts(mergeContacts(statusCache, loadContacts()));
+        rememberTarget(currentTarget);
+        highlightContact(currentTarget);
         if (currentTarget) {
             loadConversation(currentTarget);
         }
+    }
+
+    function highlightContact(username) {
+        const list = getContactList();
+        if (!list) {
+            return;
+        }
+        Array.from(list.querySelectorAll('.contact-item.selected')).forEach(function(item) {
+            item.classList.remove('selected');
+        });
+        if (!username) {
+            return;
+        }
+        const selected = list.querySelector('li[data-user="' + username + '"]');
+        if (selected) {
+            selected.classList.add('selected');
+        }
+    }
+
+    function rememberTarget(username) {
+        const key = getLastTargetKey();
+        try {
+            if (!username) {
+                localStorage.removeItem(key);
+                return;
+            }
+            localStorage.setItem(key, username);
+        } catch (error) {
+            return;
+        }
+    }
+
+    function getLastTarget() {
+        const key = getLastTargetKey();
+        try {
+            return localStorage.getItem(key) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function getLastTargetKey() {
+        const me = String(window.currentUser || '').trim().toLowerCase();
+        if (!me) {
+            return LAST_TARGET_KEY;
+        }
+        return LAST_TARGET_KEY + '.' + me;
     }
 
     function renderContacts(list) {
@@ -74,7 +132,7 @@
         if (!list || list.length === 0) {
             const empty = document.createElement('li');
             empty.className = 'contact-empty';
-            empty.textContent = 'Chưa có danh bạ';
+            empty.textContent = 'Chưa có người dùng';
             container.appendChild(empty);
             return;
         }
@@ -124,27 +182,6 @@
         }
     }
 
-    function addContact(name) {
-        const cleaned = String(name || '').trim();
-        if (!cleaned) {
-            showNotice('Vui lòng nhập username để thêm.', 'Danh bạ');
-            return;
-        }
-        if (window.currentUser && cleaned === window.currentUser) {
-            showNotice('Không thể thêm chính bạn vào danh bạ.', 'Danh bạ');
-            return;
-        }
-        const list = loadContacts();
-        if (list.includes(cleaned)) {
-            showNotice('Username này đã có trong danh bạ.', 'Danh bạ');
-            return;
-        }
-        list.push(cleaned);
-        saveContacts(list);
-        renderContacts(mergeContacts(statusCache, list));
-        setTarget(cleaned);
-    }
-
     function formatTime() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -161,6 +198,76 @@
             return parts[1].slice(0, 5);
         }
         return String(value);
+    }
+
+    function getHistoryKey(user1, user2) {
+        const first = String(user1 || '').trim().toLowerCase();
+        const second = String(user2 || '').trim().toLowerCase();
+        if (!first || !second) {
+            return '';
+        }
+        const pair = first < second ? first + '__' + second : second + '__' + first;
+        return HISTORY_KEY_PREFIX + pair;
+    }
+
+    function readHistoryCache(user1, user2) {
+        const key = getHistoryKey(user1, user2);
+        if (!key) {
+            return [];
+        }
+        try {
+            const raw = localStorage.getItem(key);
+            const list = JSON.parse(raw || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function writeHistoryCache(user1, user2, list) {
+        const key = getHistoryKey(user1, user2);
+        if (!key) {
+            return;
+        }
+        const data = Array.isArray(list) ? list.slice(-HISTORY_LIMIT) : [];
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+        } catch (error) {
+            return;
+        }
+    }
+
+    function upsertHistory(list, message) {
+        if (!Array.isArray(list)) {
+            list = [];
+        }
+        if (!message) {
+            return list;
+        }
+        if (message.id) {
+            const index = list.findIndex(function(item) {
+                return item && item.id === message.id;
+            });
+            if (index >= 0) {
+                list[index] = Object.assign({}, list[index], message);
+                return list;
+            }
+        }
+        list.push(message);
+        return list;
+    }
+
+    function updateHistoryCache(message) {
+        if (!message || !window.currentUser) {
+            return;
+        }
+        const other = message.sender === window.currentUser ? message.receiver : message.sender;
+        if (!other) {
+            return;
+        }
+        const list = readHistoryCache(window.currentUser, other);
+        const updated = upsertHistory(list, message);
+        writeHistoryCache(window.currentUser, other, updated);
     }
 
     function appendMessage(message, direction) {
@@ -180,7 +287,10 @@
         }
 
         const bubble = document.createElement('div');
-        bubble.className = 'message-bubble';
+        bubble.className = 'window message-bubble';
+
+        const body = document.createElement('div');
+        body.className = 'window-body';
 
         const meta = document.createElement('div');
         meta.className = 'message-meta';
@@ -214,8 +324,9 @@
             content.textContent = message.content || message.raw || '';
         }
 
-        bubble.appendChild(meta);
-        bubble.appendChild(content);
+        body.appendChild(meta);
+        body.appendChild(content);
+        bubble.appendChild(body);
         row.appendChild(bubble);
         history.appendChild(row);
         history.scrollTop = history.scrollHeight;
@@ -226,9 +337,11 @@
             return;
         }
         if (payload.recalled) {
+            updateHistoryCache(payload);
             applyRecall(payload);
             return;
         }
+        updateHistoryCache(payload);
         if (!isCurrentConversation(payload)) {
             if (payload.sender && payload.sender !== window.currentUser) {
                 showNotice('Tin nhắn mới từ ' + payload.sender + '.', 'Messenger');
@@ -298,6 +411,7 @@
             return;
         }
         renderContacts(statusCache);
+        highlightContact(currentTarget);
 
         list.addEventListener('click', function(event) {
             const item = event.target.closest('li[data-user]');
@@ -316,12 +430,59 @@
         }
         if (input) {
             input.addEventListener('keydown', function(event) {
-                if (event.ctrlKey && event.key === 'Enter') {
+                if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();
                     sendCurrentMessage();
                 }
             });
         }
+    }
+
+    function initSplitter() {
+        const splitter = document.getElementById('messengerSplitter');
+        const history = document.getElementById('messengerHistory');
+        const composer = document.getElementById('messengerComposer');
+        const splitContainer = document.getElementById('messengerSplit');
+        let isDragging = false;
+
+        if (!splitter || !history || !composer || !splitContainer) return;
+
+        splitter.addEventListener('mousedown', function(event) {
+            event.preventDefault();
+            isDragging = true;
+            document.body.style.cursor = 'row-resize';
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', function(event) {
+            if (!isDragging) return;
+            const rect = splitContainer.getBoundingClientRect();
+            const splitterHeight = splitter.offsetHeight || 7;
+            const minChat = 100;
+            const minComposer = 80;
+            const maxChat = rect.height - minComposer - splitterHeight;
+            let nextHeight = event.clientY - rect.top;
+
+            if (nextHeight < minChat) {
+                nextHeight = minChat;
+            }
+            if (nextHeight > maxChat) {
+                nextHeight = maxChat;
+            }
+            
+            history.style.flex = '0 0 ' + nextHeight + 'px';
+            composer.style.flex = '1 1 auto';
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                document.body.style.cursor = 'default';
+                document.body.style.webkitUserSelect = '';
+                document.body.style.userSelect = '';
+            }
+        });
     }
 
     function bindStompHandlers() {
@@ -368,8 +529,21 @@
         }
         const url = getApiBase() + '/api/users/status';
         fetchJson(url).then(function(list) {
-            statusCache = Array.isArray(list) ? list : [];
-            renderContacts(statusCache);
+            const nextList = Array.isArray(list) ? list : [];
+            const signature = nextList.map(function(item) {
+                return item.username + ':' + (item.online ? '1' : '0');
+            }).join('|');
+            if (signature !== statusSignature) {
+                statusCache = nextList;
+                statusSignature = signature;
+                renderContacts(statusCache);
+            }
+            highlightContact(currentTarget);
+            if (pendingTarget && pendingTarget !== window.currentUser) {
+                const nextTarget = pendingTarget;
+                pendingTarget = '';
+                setTarget(nextTarget);
+            }
         }).catch(function() {
             return;
         });
@@ -396,15 +570,22 @@
         if (!history) {
             return;
         }
-        history.innerHTML = '<div class="messenger-empty" id="messengerEmpty">Đang tải...</div>';
         if (!window.currentUser || !target) {
             return;
+        }
+        const cached = readHistoryCache(window.currentUser, target);
+        if (cached.length > 0) {
+            renderHistory(cached);
+        } else {
+            history.innerHTML = '<div class="messenger-empty" id="messengerEmpty">Đang tải...</div>';
         }
         const url = getApiBase() + '/api/chat/history?user1=' + encodeURIComponent(window.currentUser)
             + '&user2=' + encodeURIComponent(target);
 
         fetchJson(url).then(function(list) {
-            renderHistory(Array.isArray(list) ? list : []);
+            const historyList = Array.isArray(list) ? list : [];
+            writeHistoryCache(window.currentUser, target, historyList);
+            renderHistory(historyList);
         }).catch(function() {
             history.innerHTML = '<div class="messenger-empty" id="messengerEmpty">Không tải được lịch sử.</div>';
         });
@@ -468,6 +649,7 @@
 
     function resetUi() {
         currentTarget = '';
+        pendingTarget = '';
         setSelfName('Chưa đăng nhập');
         setStatus('Disconnected');
         stopPresencePolling();
@@ -478,9 +660,44 @@
         renderContacts([]);
     }
 
+    function initSettings() {
+        const msgBgSelect = document.getElementById('msgBgSelect');
+        const msgFontSelect = document.getElementById('msgFontSelect');
+        const msgFontSizeRange = document.getElementById('msgFontSizeRange');
+        const messengerWindow = document.getElementById('window-messenger');
+
+        const backgroundPresets = {
+            white: { bg: '#ffffff', text: '#000000' },
+            notepad: { bg: '#fff7c7', text: '#000000' },
+            desktop: { bg: '#cfe9f6', text: '#000000' },
+            matrix: { bg: '#0c2f1b', text: '#d2f9d2' },
+            dialog: { bg: '#d4d0c8', text: '#000000' }
+        };
+
+        function applyMessengerTheme() {
+            if (!messengerWindow) return;
+            const fontFamily = msgFontSelect ? msgFontSelect.value || 'MS Sans Serif' : 'MS Sans Serif';
+            const fontSize = msgFontSizeRange ? Number(msgFontSizeRange.value) || 11 : 11;
+            const preset = msgBgSelect ? backgroundPresets[msgBgSelect.value] || backgroundPresets.white : backgroundPresets.white;
+
+            messengerWindow.style.setProperty('--msg-font-family', fontFamily);
+            messengerWindow.style.setProperty('--msg-font-size', `${fontSize}px`);
+            messengerWindow.style.setProperty('--msg-bg-color', preset.bg);
+            messengerWindow.style.setProperty('--msg-text-color', preset.text);
+        }
+
+        if (msgBgSelect) msgBgSelect.addEventListener('change', applyMessengerTheme);
+        if (msgFontSelect) msgFontSelect.addEventListener('change', applyMessengerTheme);
+        if (msgFontSizeRange) msgFontSizeRange.addEventListener('input', applyMessengerTheme);
+
+        applyMessengerTheme();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         initContactList();
         initComposer();
+        initSplitter();
+        initSettings();
         bindStompHandlers();
         setSelfName(window.currentUser || 'Chưa đăng nhập');
     });

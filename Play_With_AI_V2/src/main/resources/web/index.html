@@ -124,13 +124,11 @@
                                 <div class="main-chat-area">
                                     <div class="toolbar-panel chat-toolbar">
                                         <div class="field-row">
-                                            <label for="bgSelect"><strong>Màu nền</strong></label>
-                                            <select id="bgSelect">
-                                                <option value="white" selected>Trắng (Mặc định)</option>
-                                                <option value="notepad">Vàng nhạt (Notepad)</option>
-                                                <option value="desktop">Xanh lơ (Win98 Desktop)</option>
-                                                <option value="matrix">Xanh rêu (Matrix)</option>
-                                                <option value="dialog">Xám (Hộp thoại)</option>
+                                            <label for="modelSelect"><strong>Model</strong></label>
+                                            <select id="modelSelect">
+                                                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                                                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                                                <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
                                             </select>
                                         </div>
                                         <div class="divider" aria-hidden="true"></div>
@@ -152,11 +150,13 @@
                                         </div>
                                         <div class="divider" aria-hidden="true"></div>
                                         <div class="field-row">
-                                            <label for="modelSelect"><strong>Model</strong></label>
-                                            <select id="modelSelect">
-                                                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                                                <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-                                                <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
+                                            <label for="bgSelect"><strong>Màu nền</strong></label>
+                                            <select id="bgSelect">
+                                                <option value="white" selected>Trắng (Mặc định)</option>
+                                                <option value="notepad">Vàng nhạt (Notepad)</option>
+                                                <option value="desktop">Xanh lơ (Win98 Desktop)</option>
+                                                <option value="matrix">Xanh rêu (Matrix)</option>
+                                                <option value="dialog">Xám (Hộp thoại)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -165,7 +165,7 @@
                                         <div class="sunken-panel chat-history" id="chatArea" aria-live="polite"></div>
                                         <div class="chat-splitter" id="chatSplitter" title="Keo de thay doi chieu cao"></div>
                                         <div class="composer" id="chatComposer">
-                                            <textarea id="userInput" rows="4" placeholder="Type a message. Ctrl+Enter sends."></textarea>
+                                            <textarea id="userInput" rows="4" placeholder="Type a message. Enter sends, Shift+Enter for new line."></textarea>
                                             <button id="btnSend"><strong>Send</strong></button>
                                         </div>
                                     </div>
@@ -252,20 +252,51 @@
                     </aside>
 
                     <section class="messenger-chat">
-                        <div class="toolbar-panel messenger-toolbar">
+                        <div class="toolbar-panel chat-toolbar messenger-toolbar">
                             <div class="field-row">
-                                <label for="messengerTarget">To</label>
-                                <input id="messengerTarget" type="text" placeholder="username">
+                                <label for="messengerTarget"><strong>To:</strong></label>
+                                <input id="messengerTarget" type="text" placeholder="username" style="width: 100px;">
+                            </div>
+                            <div class="divider" aria-hidden="true"></div>
+                            <div class="field-row">
+                                <label for="msgFontSelect"><strong>Font</strong></label>
+                                <select id="msgFontSelect">
+                                    <option value="MS Sans Serif" selected>MS Sans Serif</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Tahoma">Tahoma</option>
+                                    <option value="Courier New">Courier New</option>
+                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                                </select>
+                            </div>
+                            <div class="field-row">
+                                <label for="msgFontSizeRange"><strong>Size</strong></label>
+                                <input id="msgFontSizeRange" type="range" min="8" max="24" value="11" style="width: 80px;">
+                            </div>
+                            <div class="divider" aria-hidden="true"></div>
+                            <div class="field-row">
+                                <label for="msgBgSelect"><strong>Nền</strong></label>
+                                <select id="msgBgSelect">
+                                    <option value="white" selected>Trắng</option>
+                                    <option value="notepad">Notepad</option>
+                                    <option value="desktop">Win98</option>
+                                    <option value="matrix">Matrix</option>
+                                    <option value="dialog">Xám</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite">
-                            <div class="messenger-empty" id="messengerEmpty">Chưa có tin nhắn.</div>
-                        </div>
+                        <div class="chat-split" id="messengerSplit">
+                            <div class="sunken-panel messenger-history" id="messengerHistory" aria-live="polite">
+                                <div class="messenger-empty" id="messengerEmpty">Chưa có tin nhắn.</div>
+                            </div>
 
-                        <div class="composer messenger-composer">
-                            <textarea id="messengerInput" rows="3" placeholder="Nhập tin nhắn..."></textarea>
-                            <button id="btnSendPrivate"><strong>Send</strong></button>
+                            <div class="chat-splitter" id="messengerSplitter" title="Keo de thay doi chieu cao"></div>
+
+                            <div class="composer messenger-composer" id="messengerComposer">
+                                <textarea id="messengerInput" rows="3" placeholder="Nhập tin nhắn..." autocomplete="off"></textarea>
+                                <button id="btnSendPrivate"><strong>Send</strong></button>
+                            </div>
                         </div>
                     </section>
                 </div>

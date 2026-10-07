@@ -267,9 +267,8 @@ body.os-shell {
 #userInput {
     flex: 1;
     resize: none;
-    min-height: 96px;
-    height: 110px;
-    max-height: 260px;
+    min-height: 50px;
+    height: 100%;
     background: var(--chat-bg-color);
     color: var(--chat-text-color);
     font-family: var(--chat-font-family);

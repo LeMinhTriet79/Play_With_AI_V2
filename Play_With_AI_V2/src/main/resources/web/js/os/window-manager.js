@@ -1,4 +1,4 @@
-(function() {
+(function () {
     let topZ = 40;
     let activeWindow = null;
 
@@ -14,9 +14,25 @@
         return document.querySelector('.app-window[data-window="' + name + '"]');
     }
 
+    function normalizeZIndexes() {
+        const layer = getWindowLayer();
+        if (!layer) return;
+        const windows = Array.from(layer.querySelectorAll('.app-window'));
+        windows.sort((a, b) => {
+            return (parseInt(a.style.zIndex) || 0) - (parseInt(b.style.zIndex) || 0);
+        });
+        topZ = 40;
+        windows.forEach(win => {
+            win.style.zIndex = String(++topZ);
+        });
+    }
+
     function bringToFront(winEl) {
         if (!winEl) {
             return;
+        }
+        if (topZ > 80) {
+            normalizeZIndexes();
         }
         topZ += 1;
         winEl.style.zIndex = String(topZ);
@@ -48,7 +64,7 @@
             return;
         }
         const buttons = taskbar.querySelectorAll('.taskbar-button');
-        buttons.forEach(function(button) {
+        buttons.forEach(function (button) {
             const name = button.getAttribute('data-task-for');
             const winEl = getWindowByName(name);
             const isActive = winEl && winEl === activeWindow && !winEl.hidden;
@@ -69,7 +85,7 @@
             button.setAttribute('data-task-for', name);
             const title = winEl.querySelector('.title-bar-text');
             button.textContent = title ? title.textContent : name;
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 if (winEl.hidden || winEl.dataset.state === 'minimized') {
                     openWindow(name);
                 } else {
@@ -132,6 +148,14 @@
         if (!winEl) {
             return;
         }
+        const taskbar = getTaskbar();
+        if (taskbar) {
+            const name = winEl.getAttribute('data-window');
+            const button = taskbar.querySelector('[data-task-for="' + name + '"]');
+            if (button) {
+                button.classList.add('minimized');
+            }
+        }
         winEl.dataset.state = 'minimized';
         winEl.hidden = true;
         updateTaskbarState();
@@ -143,6 +167,14 @@
         }
         winEl.dataset.state = 'closed';
         winEl.hidden = true;
+        const taskbar = getTaskbar();
+        if (taskbar) {
+            const name = winEl.getAttribute('data-window');
+            const button = taskbar.querySelector('[data-task-for="' + name + '"]');
+            if (button) {
+                button.remove();
+            }
+        }
         updateTaskbarState();
     }
 
@@ -154,7 +186,20 @@
         winEl.hidden = false;
         winEl.dataset.state = 'open';
         ensureTaskButton(winEl);
-        bringToFront(winEl);
+        if (winEl.classList.contains('is-maximized')) {
+            // Already maximized, just bring to front
+            bringToFront(winEl);
+        } else {
+            // Normal state
+            const taskbar = getTaskbar();
+            if (taskbar) {
+                const button = taskbar.querySelector('[data-task-for="' + name + '"]');
+                if (button) {
+                    button.classList.remove('minimized');
+                }
+            }
+            bringToFront(winEl);
+        }
     }
 
     function initDrag(winEl) {
@@ -173,8 +218,8 @@
             const rect = layer.getBoundingClientRect();
             const left = event.clientX - rect.left - dragState.offsetX;
             const top = event.clientY - rect.top - dragState.offsetY;
-            const maxLeft = rect.width - winEl.offsetWidth;
-            const maxTop = rect.height - winEl.offsetHeight;
+            const maxLeft = Math.max(0, rect.width - winEl.offsetWidth);
+            const maxTop = Math.max(0, rect.height - winEl.offsetHeight);
 
             const nextLeft = Math.max(0, Math.min(maxLeft, left));
             const nextTop = Math.max(0, Math.min(maxTop, top));
@@ -192,7 +237,7 @@
             document.removeEventListener('mouseup', stopDrag);
         }
 
-        titleBar.addEventListener('mousedown', function(event) {
+        titleBar.addEventListener('mousedown', function (event) {
             if (event.button !== 0) {
                 return;
             }
@@ -218,7 +263,7 @@
             return;
         }
         winEl.style.zIndex = String(++topZ);
-        winEl.addEventListener('mousedown', function() {
+        winEl.addEventListener('mousedown', function () {
             bringToFront(winEl);
         });
         initDrag(winEl);
@@ -229,7 +274,7 @@
         if (!layer) {
             return;
         }
-        layer.addEventListener('click', function(event) {
+        layer.addEventListener('click', function (event) {
             const button = event.target.closest('[data-window-control]');
             if (!button) {
                 return;
@@ -259,7 +304,7 @@
             return;
         }
         const windows = layer.querySelectorAll('.app-window');
-        windows.forEach(function(winEl) {
+        windows.forEach(function (winEl) {
             initWindow(winEl);
         });
         initControls();
