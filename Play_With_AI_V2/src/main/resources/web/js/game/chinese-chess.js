@@ -33,6 +33,8 @@
     let selectedCell = null;
     let roomId       = null;
     let isGameActive = false;
+    let iWantRematch = false;
+    let oppWantsRematch = false;
     let board        = [];
     let lobbyPollTimer = null;  // periodic room-state poll while waiting
 
@@ -350,6 +352,8 @@
                 if (fromMe) break;
                 addLog('HỆ THỐNG', `⚠️ ${payload.sender} đã rời bàn.`, 'red');
                 isGameActive = false;
+                oppWantsRematch = false;
+                if (window.hideGameOverDialog) window.hideGameOverDialog();
                 // Clear the leaver's seat
                 if (payload.sender === playerRedText.innerText)   playerRedText.innerText   = '-';
                 if (payload.sender === playerBlackText.innerText) playerBlackText.innerText = '-';
@@ -398,15 +402,26 @@
                 break;
             }
 
-            case 'REMATCH': {
+            case 'REMATCH_REQUEST': {
                 if (fromMe) break;
-                addLog('HỆ THỐNG', `🔄 ${payload.sender} muốn chơi lại. Bàn cờ đã được khởi tạo lại!`, 'blue');
-                if (window.hideGameOverDialog) window.hideGameOverDialog();
-                const d = document.getElementById('chessGameOverDialog');
-                if (d) d.style.display = 'none';
-                initBoard();
-                isGameActive = true;
-                updateTurnText();
+                oppWantsRematch = true;
+                addLog('HỆ THỐNG', `🔄 ${payload.sender} muốn chơi lại!`, 'blue');
+                if (iWantRematch) {
+                    // Start the rematch globally because both want it
+                    const btnPlayAgain = document.getElementById('btnChessPlayAgain');
+                    if (btnPlayAgain) {
+                        btnPlayAgain.click(); // Trigger startRematch and ACCEPT
+                    }
+                }
+                break;
+            }
+
+            case 'REMATCH_ACCEPT': {
+                if (fromMe) break;
+                if (iWantRematch) {
+                    oppWantsRematch = true;
+                    if (window.startRematch) window.startRematch();
+                }
                 break;
             }
 
@@ -759,32 +774,53 @@
         const gameOverScore = document.getElementById('chessGameOverScore');
 
         window.showGameOverDialog = function(msg) {
+            iWantRematch = false;
+            oppWantsRematch = false;
             if (gameOverMessage) gameOverMessage.innerText = msg;
             const oppName = (mySide === 'red') ? playerBlackText.innerText : playerRedText.innerText;
             if (gameOverScore) gameOverScore.innerText = `Tỉ số: ${window.currentUser} ${myScore} - ${oppScore} ${oppName}`;
             if (gameOverDialog) gameOverDialog.style.display = 'flex';
         }
 
-        function hideGameOverDialog() {
+        window.hideGameOverDialog = function() {
             if (gameOverDialog) gameOverDialog.style.display = 'none';
         }
 
-        if (btnCloseGameOver) btnCloseGameOver.addEventListener('click', hideGameOverDialog);
+        if (btnCloseGameOver) btnCloseGameOver.addEventListener('click', window.hideGameOverDialog);
         
+        window.startRematch = function() {
+            initBoard();
+            isGameActive = true;
+            updateTurnText();
+            addLog('HỆ THỐNG', 'Trận đấu bắt đầu!', 'green');
+            iWantRematch = false;
+            oppWantsRematch = false;
+            window.hideGameOverDialog();
+        };
+
         if (btnPlayAgain) {
             btnPlayAgain.addEventListener('click', () => {
-                hideGameOverDialog();
-                initBoard();
-                isGameActive = true;
-                updateTurnText();
-                addLog('HỆ THỐNG', 'Bạn đã bắt đầu ván mới!', 'green');
-                sendGameEvent({ type: 'REMATCH' });
+                window.hideGameOverDialog();
+                iWantRematch = true;
+                
+                if (oppWantsRematch) {
+                    window.startRematch();
+                    sendGameEvent({ type: 'REMATCH_ACCEPT' });
+                } else {
+                    sendGameEvent({ type: 'REMATCH_REQUEST' });
+                    initBoard();
+                    isGameActive = false;
+                    turnText.innerText = 'Đang chờ đối thủ...';
+                    turnText.style.color = '#333';
+                    turnText.style.fontWeight = 'normal';
+                    addLog('HỆ THỐNG', 'Bạn đã sẵn sàng. Đang chờ đối thủ chơi tiếp...', 'blue');
+                }
             });
         }
 
         if (btnLeaveAfterGame) {
             btnLeaveAfterGame.addEventListener('click', () => {
-                hideGameOverDialog();
+                window.hideGameOverDialog();
                 if (btnLeave) btnLeave.click();
             });
         }
