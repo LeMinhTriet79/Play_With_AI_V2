@@ -123,9 +123,7 @@
         winEl.style.left = '0px';
         winEl.style.top = '0px';
         winEl.style.width = '100%';
-        winEl.style.height = 'calc(100% - 32px)';
-        winEl.style.right = '0px';
-        winEl.style.bottom = '32px';
+        winEl.style.height = '100%';
         winEl.style.maxWidth = 'none';
         winEl.style.maxHeight = 'none';
         bringToFront(winEl);
