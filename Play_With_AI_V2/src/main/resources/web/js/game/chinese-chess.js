@@ -729,14 +729,14 @@
     function addLog(sender, message, forceColor) {
         let nameColor = forceColor || '#333';
         if (!forceColor) {
-            if (sender === window.currentUser) nameColor = '#0078d7'; // Xanh cho mình
+            if (sender === window.currentUser) nameColor = 'blue'; // Xanh cho mình
             else if (sender !== 'HỆ THỐNG') nameColor = '#000000'; // Đen cho địch
             else nameColor = '#008000'; // Xanh lá cho hệ thống
         }
 
         const div = document.createElement('div');
         div.style.marginBottom = '4px';
-        div.style.wordBreak = 'break-word';
+        div.style.wordBreak = 'break-all'; // FIX OVERFLOW triệt để
         div.innerHTML = `<span style="font-weight:bold; color:${nameColor}">${sender}</span>: <span style="color: ${forceColor ? forceColor : '#000'}">${message}</span>`;
         logArea.appendChild(div);
         logArea.scrollTop = logArea.scrollHeight;
@@ -760,7 +760,8 @@
 
         window.showGameOverDialog = function(msg) {
             if (gameOverMessage) gameOverMessage.innerText = msg;
-            if (gameOverScore) gameOverScore.innerText = `Tỉ số: Bạn ${myScore} - ${oppScore} Địch`;
+            const oppName = (mySide === 'red') ? playerBlackText.innerText : playerRedText.innerText;
+            if (gameOverScore) gameOverScore.innerText = `Tỉ số: ${window.currentUser} ${myScore} - ${oppScore} ${oppName}`;
             if (gameOverDialog) gameOverDialog.style.display = 'flex';
         }
 
