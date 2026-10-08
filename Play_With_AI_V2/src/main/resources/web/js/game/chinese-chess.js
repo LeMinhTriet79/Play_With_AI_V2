@@ -975,10 +975,14 @@
             resetToLobby();
         },
         confirmExit: (onConfirm) => {
-            const exitDialog = document.getElementById('chessExitDialog');
-            if (exitDialog) {
-                exitDialog.style.display = 'flex';
-                window.chessApp._exitConfirmCallback = onConfirm;
+            if (roomId) {
+                const exitDialog = document.getElementById('chessExitDialog');
+                if (exitDialog) {
+                    exitDialog.style.display = 'flex';
+                    window.chessApp._exitConfirmCallback = onConfirm;
+                } else {
+                    onConfirm();
+                }
             } else {
                 onConfirm();
             }

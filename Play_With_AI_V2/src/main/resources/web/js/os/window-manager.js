@@ -188,6 +188,10 @@
         winEl.hidden = false;
         winEl.dataset.state = 'open';
         ensureTaskButton(winEl);
+        
+        if (name === 'chess' && !winEl.classList.contains('is-maximized')) {
+            maximizeWindow(winEl);
+        }
         if (winEl.classList.contains('is-maximized')) {
             // Already maximized, just bring to front
             bringToFront(winEl);
