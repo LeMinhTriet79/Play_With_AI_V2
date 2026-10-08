@@ -165,9 +165,13 @@
         }
         winEl.dataset.state = 'closed';
         winEl.hidden = true;
+        const name = winEl.getAttribute('data-window');
+        if (name === 'chess' && window.chessApp && window.chessApp.leaveRoomIfAny) {
+            window.chessApp.leaveRoomIfAny();
+        }
+        
         const taskbar = getTaskbar();
         if (taskbar) {
-            const name = winEl.getAttribute('data-window');
             const button = taskbar.querySelector('[data-task-for="' + name + '"]');
             if (button) {
                 button.remove();

@@ -67,35 +67,50 @@
         fetch(API_BASE + '/api/chess/rooms?t=' + Date.now())
             .then(r => r.json())
             .then(rooms => {
-                roomList.innerHTML = '';
-                if (!rooms.length) {
-                    roomList.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:10px;">Chưa có bàn nào. Hãy mở bàn mới!</td></tr>';
-                    return;
-                }
+                const waitingList = document.getElementById('chessWaitingRoomList');
+                const playingList = document.getElementById('chessPlayingRoomList');
+                if (!waitingList || !playingList) return;
+
+                waitingList.innerHTML = '';
+                playingList.innerHTML = '';
+
+                let waitingCount = 0;
+                let playingCount = 0;
+
                 rooms.forEach(room => {
+                    const isPlaying = room.playerRed && room.playerBlack;
                     const tr = document.createElement('tr');
-                    tr.style.borderBottom = '1px solid #eee';
                     tr.style.cursor = 'pointer';
-                    tr.innerHTML = `
-                        <td style="padding:5px;">#${room.roomId}</td>
-                        <td style="padding:5px;">10p</td>
-                        <td style="padding:5px;color:red;font-weight:bold;">
-                            <span style="display:inline-block;width:8px;height:8px;background:red;margin-right:4px;"></span>
-                            ${room.playerRed || '-'}
-                        </td>
-                        <td style="padding:5px;font-weight:bold;">
-                            <span style="display:inline-block;width:8px;height:8px;background:#222;margin-right:4px;"></span>
-                            ${room.playerBlack || '-'}
-                        </td>
-                        <td style="padding:5px;">
-                            <button style="background:#eee;border:1px solid #ccc;padding:2px 10px;cursor:pointer;">&gt;&gt;</button>
-                        </td>
-                    `;
-                    tr.onmouseover = () => tr.style.background = '#f5f5f5';
-                    tr.onmouseout  = () => tr.style.background = 'transparent';
-                    tr.onclick = () => joinRoom(room);
-                    roomList.appendChild(tr);
+
+                    if (isPlaying) {
+                        playingCount++;
+                        tr.innerHTML = `
+                            <td>#${room.roomId}</td>
+                            <td style="color:red;font-weight:bold;">${room.playerRed || '-'}</td>
+                            <td style="font-weight:bold;">${room.playerBlack || '-'}</td>
+                            <td style="padding: 2px;"><button style="width: 100%; box-sizing: border-box; padding: 0 4px;">Vào xem</button></td>
+                        `;
+                        tr.onclick = () => alert('Bàn này đang chơi, tính năng vào xem chưa ra mắt!');
+                        playingList.appendChild(tr);
+                    } else {
+                        waitingCount++;
+                        const owner = room.playerRed || room.playerBlack || '-';
+                        tr.innerHTML = `
+                            <td>#${room.roomId}</td>
+                            <td style="color:${room.playerRed?'red':'black'};font-weight:bold;">${owner}</td>
+                            <td style="padding: 2px;"><button style="width: 100%; box-sizing: border-box; padding: 0 4px;">Vào chơi</button></td>
+                        `;
+                        tr.onclick = () => joinRoom(room);
+                        waitingList.appendChild(tr);
+                    }
                 });
+
+                if (waitingCount === 0) {
+                    waitingList.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:10px;">Chưa có bàn chờ nào!</td></tr>';
+                }
+                if (playingCount === 0) {
+                    playingList.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:10px;">Chưa có bàn nào đang chơi!</td></tr>';
+                }
             })
             .catch(e => console.error('fetchRooms error', e));
 
@@ -180,6 +195,13 @@
         // Switch views
         lobbyView.style.display = 'none';
         gameView.style.display  = 'flex';
+        
+        // Phát nhạc nền
+        const bgm = document.getElementById('bgmAudio');
+        if (bgm) {
+            bgm.volume = 0.5; // Đặt âm lượng vừa phải
+            bgm.play().catch(e => console.log('Không thể tự động phát nhạc:', e));
+        }
 
         // Update header
         gameRoomName.innerText      = `bàn #${room.roomId}`;
@@ -197,6 +219,7 @@
 
         initBoard();
         addLog('HỆ THỐNG', 'Bạn đã vào bàn. Mã bàn: ' + room.roomId, 'blue');
+        updateBoardScale();
 
         // Subscribe to game room topic — retry up to 5 times if not yet connected
         function trySubscribe(attemptsLeft) {
@@ -273,6 +296,14 @@
         roomId       = null;
         isGameActive = false;
         selectedCell = null;
+        
+        // Tắt nhạc nền
+        const bgm = document.getElementById('bgmAudio');
+        if (bgm) {
+            bgm.pause();
+            bgm.currentTime = 0;
+        }
+
         fetchRooms();
     }
 
@@ -877,13 +908,13 @@
     window.chessApp = { 
         fetchRooms,
         leaveRoomIfAny: () => {
-            if (isGameActive && roomId) {
+            if (roomId) {
                 sendGameEvent({ type: 'LEAVE', player: window.currentUser, sender: window.currentUser });
                 fetch(API_BASE + '/api/chess/rooms/' + roomId + '?player=' + encodeURIComponent(window.currentUser), {
                     method: 'DELETE'
                 }).catch(() => {});
-                resetToLobby();
             }
+            resetToLobby();
         }
     };
 
@@ -893,5 +924,29 @@
         icon.addEventListener('click',   fetchRooms);
         icon.addEventListener('dblclick', fetchRooms);
     }
+
+    function updateBoardScale() {
+        const gameArea = document.getElementById('chess-game-area');
+        const container = document.getElementById('chessBoardContainer');
+        const board = document.getElementById('chessBoard');
+        
+        if (gameArea && gameArea.style.display !== 'none' && container && board) {
+            // Find container inner size
+            const w = container.clientWidth - 40;
+            const h = container.clientHeight - 40;
+            
+            // Base board size is approx 500x500
+            const scaleX = w / 500;
+            const scaleY = h / 540;
+            const scale = Math.min(scaleX, scaleY);
+            
+            if (scale > 0) {
+                // Limit scale to avoid getting too huge
+                const finalScale = Math.min(scale, 1.8);
+                board.style.transform = `scale(${finalScale})`;
+            }
+        }
+    }
+    window.addEventListener('resize', updateBoardScale);
 
 })();
