@@ -295,7 +295,12 @@
                     maximizeWindow(winEl);
                 }
             } else if (action === 'close') {
-                closeWindow(winEl);
+                const name = winEl.getAttribute('data-window');
+                if (name === 'chess' && window.chessApp && window.chessApp.confirmExit) {
+                    window.chessApp.confirmExit(() => closeWindow(winEl));
+                } else {
+                    closeWindow(winEl);
+                }
             }
         });
     }

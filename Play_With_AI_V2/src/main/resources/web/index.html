@@ -480,14 +480,20 @@
                                         <!-- Player Info -->
                                         <div style="display: flex; gap: 8px;">
                                             <div style="flex: 1; min-width: 0;">
-                                                <div style="margin-bottom: 2px;">Đỏ (#1)</div>
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                                    <span>Đỏ (#1)</span>
+                                                    <strong style="color: red;" id="chessScoreRed">0</strong>
+                                                </div>
                                                 <div class="field-border-disabled" id="chessPlayerRed"
                                                     style="padding: 4px; font-weight: bold; min-height: 20px;">
                                                     -</div>
                                                 <div style="margin-top: 2px; font-size: 11px;">0:00</div>
                                             </div>
                                             <div style="flex: 1; min-width: 0;">
-                                                <div style="margin-bottom: 2px;">Đen (#2)</div>
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                                    <span>Đen (#2)</span>
+                                                    <strong style="color: black;" id="chessScoreBlack">0</strong>
+                                                </div>
                                                 <div class="field-border-disabled" id="chessPlayerBlack"
                                                     style="padding: 4px; font-weight: bold; min-height: 20px;">
                                                     -</div>
@@ -497,8 +503,8 @@
 
                                         <!-- Actions -->
                                         <div style="display: flex; gap: 4px; margin-top: 4px;">
-                                            <button id="btnChessDraw" style="flex: 1; padding: 2px 0;">Hòa</button>
-                                            <button id="btnChessResign" style="flex: 1; padding: 2px 0;">Thua</button>
+                                            <button id="btnChessDraw" style="flex: 1; padding: 2px 0;">Cầu Hòa</button>
+                                            <button id="btnChessResign" style="flex: 1; padding: 2px 0;">Đầu Hàng</button>
                                             <button id="btnChessLeave" style="flex: 1; padding: 2px 0;">Thoát</button>
                                         </div>
                                     </div>
@@ -517,9 +523,35 @@
                                                 placeholder="Nhắn tin...">
                                             <button id="btnChessSendChat" style="padding: 0 10px;">Gửi</button>
                                         </div>
+                                        <div class="field-row" style="display: flex; gap: 4px; margin-top: 8px; align-items: center;">
+                                            <label for="bgmVolumeSlider">Âm lượng:</label>
+                                            <label for="bgmVolumeSlider" style="margin-left: 4px;">Nhỏ</label>
+                                            <input id="bgmVolumeSlider" type="range" min="0" max="100" value="50" style="flex: 1; min-width: 0;" />
+                                            <label for="bgmVolumeSlider">To</label>
+                                        </div>
                                     </fieldset>
                                 </div>
                             </div>
+
+                                <!-- Exit Dialog -->
+                                <div id="chessExitDialog"
+                                    style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                                    <div class="window" style="width: 300px; max-width: 90%;">
+                                        <div class="title-bar">
+                                            <div class="title-bar-text">Thoát trò chơi</div>
+                                            <div class="title-bar-controls">
+                                                <button aria-label="Close" id="btnChessExitClose"></button>
+                                            </div>
+                                        </div>
+                                        <div class="window-body" style="text-align: center; padding: 20px 10px;">
+                                            <p style="font-size: 14px; margin-bottom: 20px;">Bạn có chắc chắn muốn thoát game không?</p>
+                                            <div style="display: flex; justify-content: center; gap: 15px;">
+                                                <button id="btnChessExitConfirm" style="padding: 5px 15px; font-weight: bold;">Đồng ý</button>
+                                                <button id="btnChessExitCancel" style="padding: 5px 15px;">Hủy bỏ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <!-- Game Over Dialog -->
                                 <div id="chessGameOverDialog"
@@ -623,9 +655,7 @@
             </div>
         </div>
     </div>
-    <audio id="bgmAudio" loop>
-        <source src="musics/TeochewMusic.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bgmAudio"></audio>
 
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>

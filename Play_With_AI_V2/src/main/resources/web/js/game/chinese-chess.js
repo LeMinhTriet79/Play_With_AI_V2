@@ -24,6 +24,12 @@
     const btnDraw          = document.getElementById('btnChessDraw');
     const waitingOverlay   = document.getElementById('chessWaitingOverlay');
     const onlineUsersList  = document.getElementById('chessOnlineUsers');
+    const bgmVolumeSlider  = document.getElementById('bgmVolumeSlider');
+    const bgmAudio         = document.getElementById('bgmAudio');
+    const exitDialog       = document.getElementById('chessExitDialog');
+    const btnExitConfirm   = document.getElementById('btnChessExitConfirm');
+    const btnExitCancel    = document.getElementById('btnChessExitCancel');
+    const btnExitClose     = document.getElementById('btnChessExitClose');
 
     // =====================================================================
     // STATE
@@ -37,6 +43,11 @@
     let oppWantsRematch = false;
     let board        = [];
     let lobbyPollTimer = null;  // periodic room-state poll while waiting
+    let bgmPlaylist = [
+        'musics/TeochewMusic_01.mp3',
+        'musics/TeochewMusic_02.mp3'
+    ];
+    let currentBgmIndex = 0;
 
     // =====================================================================
     // BOARD CONSTANTS
@@ -198,8 +209,14 @@
         
         // Phát nhạc nền
         const bgm = document.getElementById('bgmAudio');
+        const slider = document.getElementById('bgmVolumeSlider');
         if (bgm) {
-            bgm.volume = 0.5; // Đặt âm lượng vừa phải
+            bgm.volume = slider ? (slider.value / 100) : 0.5;
+            currentBgmIndex = 0;
+            bgm.src = bgmPlaylist[currentBgmIndex];
+            bgm.pause();
+            bgm.currentTime = 0;
+            bgm.load(); // Force WebView to reload the stream to ensure it starts from 0
             bgm.play().catch(e => console.log('Không thể tự động phát nhạc:', e));
         }
 
@@ -296,6 +313,9 @@
         roomId       = null;
         isGameActive = false;
         selectedCell = null;
+        myScore      = 0;
+        oppScore     = 0;
+        updateScoreDisplay();
         
         // Tắt nhạc nền
         const bgm = document.getElementById('bgmAudio');
@@ -381,10 +401,19 @@
 
             case 'LEAVE': {
                 if (fromMe) break;
-                addLog('HỆ THỐNG', `⚠️ ${payload.sender} đã rời bàn.`, 'red');
-                isGameActive = false;
+                
+                if (isGameActive) {
+                    addLog('HỆ THỐNG', `⚠️ ${payload.sender} đã bỏ cuộc giữa chừng. Bạn thắng!`, 'green');
+                    myScore++;
+                    updateScoreDisplay();
+                    isGameActive = false;
+                    showGameOverDialog(`Đối thủ bỏ cuộc giữa chừng. Bạn thắng!`);
+                } else {
+                    addLog('HỆ THỐNG', `⚠️ ${payload.sender} đã rời bàn.`, 'red');
+                    if (window.hideGameOverDialog) window.hideGameOverDialog();
+                }
+
                 oppWantsRematch = false;
-                if (window.hideGameOverDialog) window.hideGameOverDialog();
                 // Clear the leaver's seat
                 if (payload.sender === playerRedText.innerText)   playerRedText.innerText   = '-';
                 if (payload.sender === playerBlackText.innerText) playerBlackText.innerText = '-';
@@ -393,6 +422,7 @@
                 waitingOverlay.style.background = '#e31818';
                 waitingOverlay.style.display = 'block';
                 
+                initBoard();
                 updateTurnText();
                 startLobbyPoll(); // Resume polling for new player
                 break;
@@ -419,17 +449,24 @@
                 if (fromMe) break;
                 if (confirm(`${payload.sender} xin hòa. Bạn có đồng ý không?`)) {
                     sendGameEvent({ type: 'DRAW_ACCEPT' });
-                    addLog('HỆ THỐNG', 'Bạn đã chấp nhận hòa.', 'blue');
+                    addLog('HỆ THỐNG', 'Bạn đã chấp nhận hòa. Ván đấu mới tự động bắt đầu.', 'blue');
+                    initBoard();
+                    isGameActive = true;
+                    updateTurnText();
+                    if (window.hideGameOverDialog) window.hideGameOverDialog();
+                } else {
+                    addLog('HỆ THỐNG', 'Bạn đã từ chối hòa.', 'red');
                 }
                 break;
             }
 
             case 'DRAW_ACCEPT': {
                 if (fromMe) break;
-                addLog('HỆ THỐNG', '🤝 Hai bên đã đồng ý hòa!', 'green');
-                isGameActive = false;
+                addLog('HỆ THỐNG', '🤝 Hai bên đã đồng ý hòa! Ván đấu mới tự động bắt đầu.', 'green');
+                initBoard();
+                isGameActive = true;
                 updateTurnText();
-                showGameOverDialog('Trận đấu kết thúc: Hòa cờ!');
+                if (window.hideGameOverDialog) window.hideGameOverDialog();
                 break;
             }
 
@@ -758,14 +795,12 @@
     }
     
     function updateScoreDisplay() {
-        // Find the elements that hold 0:00
-        const scoreDivs = document.querySelectorAll('#chessPlayerRed').length ? 
-            document.getElementById('chessPlayerRed').parentElement.nextElementSibling.querySelectorAll('span') : [];
-        if (scoreDivs.length >= 2) {
-            // Assuming left is Red, right is Black based on UI
+        const scoreRedEl = document.getElementById('chessScoreRed');
+        const scoreBlackEl = document.getElementById('chessScoreBlack');
+        if (scoreRedEl && scoreBlackEl) {
             const mySideIsRed = (mySide === 'red');
-            scoreDivs[0].innerText = 'Thắng: ' + (mySideIsRed ? myScore : oppScore);
-            scoreDivs[1].innerText = 'Thắng: ' + (mySideIsRed ? oppScore : myScore);
+            scoreRedEl.innerText = (mySideIsRed ? myScore : oppScore);
+            scoreBlackEl.innerText = (mySideIsRed ? oppScore : myScore);
         }
     }
 
@@ -819,6 +854,29 @@
 
         if (btnCloseGameOver) btnCloseGameOver.addEventListener('click', window.hideGameOverDialog);
         
+        if (bgmVolumeSlider && bgmAudio) {
+            bgmAudio.volume = bgmVolumeSlider.value / 100;
+            bgmVolumeSlider.addEventListener('input', (e) => {
+                bgmAudio.volume = e.target.value / 100;
+            });
+            // Loop through playlist using JS
+            bgmAudio.addEventListener('ended', function() {
+                currentBgmIndex = (currentBgmIndex + 1) % bgmPlaylist.length;
+                this.src = bgmPlaylist[currentBgmIndex];
+                this.load();
+                this.play().catch(e => console.log('Không thể tự động phát nhạc:', e));
+            }, false);
+        }
+
+        if (btnExitClose) btnExitClose.addEventListener('click', () => { if (exitDialog) exitDialog.style.display = 'none'; });
+        if (btnExitCancel) btnExitCancel.addEventListener('click', () => { if (exitDialog) exitDialog.style.display = 'none'; });
+        if (btnExitConfirm) btnExitConfirm.addEventListener('click', () => {
+            if (exitDialog) exitDialog.style.display = 'none';
+            if (window.chessApp && window.chessApp._exitConfirmCallback) {
+                window.chessApp._exitConfirmCallback();
+            }
+        });
+
         window.startRematch = function() {
             initBoard();
             isGameActive = true;
@@ -915,7 +973,17 @@
                 }).catch(() => {});
             }
             resetToLobby();
-        }
+        },
+        confirmExit: (onConfirm) => {
+            const exitDialog = document.getElementById('chessExitDialog');
+            if (exitDialog) {
+                exitDialog.style.display = 'flex';
+                window.chessApp._exitConfirmCallback = onConfirm;
+            } else {
+                onConfirm();
+            }
+        },
+        _exitConfirmCallback: null
     };
 
     // Auto-refresh when desktop icon is clicked/double-clicked
