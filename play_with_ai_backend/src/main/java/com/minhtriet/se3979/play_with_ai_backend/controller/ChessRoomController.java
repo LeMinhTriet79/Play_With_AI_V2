@@ -163,6 +163,43 @@ public class ChessRoomController {
         broadcastRoomUpdate();
     }
 
+    public void handleUserDisconnect(String player) {
+        if (player == null || player.isBlank()) return;
+        boolean changed = false;
+        
+        for (RoomInfo room : rooms.values()) {
+            boolean isRed = player.equals(room.getPlayerRed());
+            boolean isBlack = player.equals(room.getPlayerBlack());
+            
+            if (isRed || isBlack) {
+                if (isRed) {
+                    room.setPlayerRed(null);
+                }
+                if (isBlack) {
+                    room.setPlayerBlack(null);
+                }
+                room.setStatus("WAITING");
+                
+                if (room.getPlayerRed() == null && room.getPlayerBlack() == null) {
+                    rooms.remove(room.getRoomId());
+                } else {
+                    // Notify the remaining player
+                    Map<String, Object> leaveEvent = new java.util.HashMap<>();
+                    leaveEvent.put("type", "LEAVE");
+                    leaveEvent.put("roomId", room.getRoomId());
+                    leaveEvent.put("sender", player);
+                    leaveEvent.put("player", player);
+                    leaveEvent.put("side", isRed ? "red" : "black");
+                    messagingTemplate.convertAndSend("/topic/game/" + room.getRoomId(), (Object) leaveEvent);
+                }
+                changed = true;
+            }
+        }
+        if (changed) {
+            broadcastRoomUpdate();
+        }
+    }
+
     private void broadcastRoomUpdate() {
         Object updateMsg = Map.of("type", "ROOM_UPDATE");
         messagingTemplate.convertAndSend("/topic/public", updateMsg);

@@ -50,24 +50,25 @@ public class PresenceService {
         }
     }
 
-    public void unregisterSession(String sessionId) {
+    public String unregisterSession(String sessionId) {
         if (sessionId == null) {
-            return;
+            return null;
         }
         String username = sessionUsers.remove(sessionId);
         if (username == null) {
-            return;
+            return null;
         }
         AtomicInteger counter = userSessions.get(username);
         if (counter == null) {
             updateOnline(username, false);
-            return;
+            return username;
         }
         int next = counter.decrementAndGet();
         if (next <= 0) {
             userSessions.remove(username);
             updateOnline(username, false);
         }
+        return username;
     }
 
     private void updateOnline(String username, boolean online) {
